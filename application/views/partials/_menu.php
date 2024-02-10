@@ -211,3 +211,6 @@
 
 <?php  $mactive = ($this->uri->rsegment(1) == 'mpesa')  ? "class='selected'" : "" ?>
 <li <?php echo $mactive?>><a href="mpesa/" style="background-position: 0px 0px;">Mpesa</a></li>
+
+<?php  $mactive = ($this->uri->rsegment(1) == 'igcse')  ? "class='selected'" : "" ?>
+<li <?php echo $mactive?>><a href="igcse/" style="background-position: 0px 0px;">Igcse</a></li>

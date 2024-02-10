@@ -279,3 +279,6 @@ $route['driver_categories/(:num)'] = 'driver_categories/index/$1';
 
 //Routes For mpesa
 $route['mpesa/(:num)'] = 'mpesa/index/$1';
+
+//Routes For igcse
+$route['igcse/(:num)'] = 'igcse/index/$1';

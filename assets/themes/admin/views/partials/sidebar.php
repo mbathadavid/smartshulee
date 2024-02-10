@@ -99,6 +99,7 @@ if (
                          preg_match('/^(admin\/assessment)/i', $this->uri->uri_string()) ||
                          preg_match('/^(admin\/exams_management)/i', $this->uri->uri_string()) ||
                          preg_match('/^(admin\/exams)/i', $this->uri->uri_string()) ||
+                         preg_match('/^(admin\/igcse)/i', $this->uri->uri_string()) ||
                          preg_match('/^(admin\/class_attendance)/i', $this->uri->uri_string()) ||
                          preg_match('/^(admin\/class_groups\/classes)/i', $this->uri->uri_string()) ||
                          preg_match('/^(admin\/class_timetable)/i', $this->uri->uri_string()) ||
@@ -362,6 +363,8 @@ echo $count;
 
 
                 <a  <?php if (preg_match('/^(admin\/exams)$/i', $this->uri->uri_string())) echo 'class="active"'; ?> href="<?php echo base_url('admin/exams'); ?>"><span class="glyphicon glyphicon-list "></span> Exams</a>
+
+                <a  <?php if (preg_match('/^(admin\/igcse)$/i', $this->uri->uri_string())) echo 'class="active"'; ?> href="<?php echo base_url('admin/igcse'); ?>"><span class="glyphicon glyphicon-list "></span> IGCSE</a>
 
                 <a href="<?php echo base_url('admin/reports/exam'); ?>" 
 <?php echo (preg_match('/^(admin\/reports\/exam)/i', $this->uri->uri_string())) ? 'class="active"' : ' ' ?> >
