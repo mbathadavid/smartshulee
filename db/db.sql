@@ -43,3 +43,18 @@ ALTER TABLE `igcse_exams`
 
 ALTER TABLE `igcse_exams`
 	ADD COLUMN `type` INT(11) NULL DEFAULT NULL AFTER `tid`;
+
+CREATE TABLE IF NOT EXISTS `gs_grades` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `grade_id` int(11) NOT NULL,
+  `grade` text NOT NULL,
+  `minimum_marks` int(11) DEFAULT NULL,
+  `maximum_marks` int(11) DEFAULT NULL,
+  `points` int(11) DEFAULT NULL,
+  `comment` text DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `modified_by` int(11) DEFAULT NULL,
+  `created_on` int(11) DEFAULT NULL,
+  `modified_on` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;

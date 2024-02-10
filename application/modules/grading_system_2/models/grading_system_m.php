@@ -27,6 +27,11 @@ class Grading_system_m extends MY_Model{
                 ->result();
     }
 
+    function update_gs_attributes($id, $data)
+    {
+         return  $this->db->where('id', $id) ->update('gs_grades', $data);
+    }
+
     function checkgrade($gsi,$grade)
     {
           return $this->db
@@ -57,11 +62,6 @@ class Grading_system_m extends MY_Model{
     function update_attributes($id, $data)
     {
          return  $this->db->where('id', $id) ->update('grading_system', $data);
-    }
-
-    function update_gs_attributes($id, $data)
-    {
-         return  $this->db->where('id', $id) ->update('gs_grades', $data);
     }
 
 function populate($table,$option_val,$option_text)

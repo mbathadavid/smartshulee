@@ -53,6 +53,8 @@
 							
 								<a class='btn btn-primary' href="<?php echo site_url('admin/grading_system/edit/'.$p->id.'/'.$page);?>"><i class="glyphicon glyphicon-edit"></i> Edit</a>
 							  
+
+								<a class='btn btn-success' href="<?php echo site_url('admin/grading_system/grades_add/'.$p->id);?>"><i class="glyphicon glyphicon-plus"></i> Add Grades</a>
 							<!--a class='btn btn-danger' onClick="return confirm('<?php echo lang('web_confirm_delete')?>')" href='<?php echo site_url('admin/grading_system/delete/'.$p->id.'/'.$page);?>'><i class="glyphicon glyphicon-trash"></i> Trash</a-->
 						</div>
 					</td>

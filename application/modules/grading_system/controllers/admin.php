@@ -261,6 +261,126 @@ parent::__construct();
              $this->template->title('Edit Grading System ' )->build('admin/create', $data);
 	}
 
+	//Function to return return add grading views
+	public function grades_add($id = NULL) {
+		$data['gradingsys'] = $this->grading_system_m->find($id);
+		$data['grades'] = $this->grading_system_m->fetchgrades($id);
+		//Rules for validation
+        $this->form_validation->set_rules($this->validation2());
+
+            //validate the fields of form
+            if ($this->form_validation->run() )
+            {         //Validation OK!
+          $user = $this -> ion_auth -> get_user();
+
+		  $k = 0;
+		  $kk = 0;
+		  $kkk = 0;
+		  $grades = $this->input->post('grade');
+
+		//   echo "<pre>";
+		//   print_r($this->input->post());
+		//   echo "</pre>"; die;
+
+		  foreach($grades as $z => $grade)
+		  {
+
+			if(empty($grade))
+			{
+				continue;
+			}
+
+			$gradavailable = $this->grading_system_m->checkgrade($id,$grade);
+			if (empty($this->input->post('gid')[$z])) {
+				if ($gradavailable) {
+					$kkk++;
+					continue;
+				}
+
+					$form_data = array(
+						'grade_id' => $id, 
+						'grade' => trim($grade), 
+						'minimum_marks' => $this->input->post('minimum_marks')[$z], 
+						'maximum_marks' => $this->input->post('maximum_marks')[$z],
+						'points' => $this->input->post('points')[$z],
+						'comment' => $this->input->post('comment')[$z],
+						'created_by' => $user -> id ,   
+						'created_on' => time()
+					);
+
+
+					$ok =  $this->grading_system_m->addgrades($form_data);
+					if ($ok) 
+					{
+						$details = implode(' , ', $this->input->post());
+						$user = $this->ion_auth->get_user();
+							$log = array(
+								'module' =>  $this->router->fetch_module(), 
+								'item_id' => $ok, 
+								'transaction_type' => $this->router->fetch_method(), 
+								'description' => base_url('admin').'/'.$this->router->fetch_module().'/'.$this->router->fetch_method().'/'.$ok, 
+								'details' => $details,   
+								'created_by' => $user -> id,   
+								'created_on' => time()
+							);
+
+							$this->ion_auth->create_log($log);
+						$k++;
+
+				} 
+			} else {
+					$form_data = array(
+						'grade_id' => $id, 
+						'grade' => trim($grade), 
+						'minimum_marks' => $this->input->post('minimum_marks')[$z], 
+						'maximum_marks' => $this->input->post('maximum_marks')[$z],
+						'points' => $this->input->post('points')[$z],
+						'comment' => $this->input->post('comment')[$z],
+						'created_by' => $user -> id ,   
+						'created_on' => time()
+					);
+
+					$ok =  $this->grading_system_m->update_gs_attributes($this->input->post('gid')[$z],$form_data);
+					if ($ok) 
+					{
+						$details = implode(' , ', $this->input->post());
+						$user = $this->ion_auth->get_user();
+							$log = array(
+								'module' =>  $this->router->fetch_module(), 
+								'item_id' => $ok, 
+								'transaction_type' => $this->router->fetch_method(), 
+								'description' => base_url('admin').'/'.$this->router->fetch_module().'/'.$this->router->fetch_method().'/'.$ok, 
+								'details' => $details,   
+								'created_by' => $user -> id,   
+								'created_on' => time()
+							);
+
+							$this->ion_auth->create_log($log);
+						$kk++;
+
+				} 
+			}
+		 
+		  }
+
+
+		  $this->session->set_flashdata('message', array( 'type' => 'success', 'text' => $k.' Grades added Successfully. '.$kk.' Grades Updated '.$kkk.' Grades Skipped' ));
+
+		redirect('admin/grading_system/grades_add/'.$id);
+
+	  	}else
+                {
+                $get = new StdClass();
+                foreach ($this -> validation() as $field)
+                {   
+                         $get->{$field['field']}  = set_value($field['field']);
+                 }
+		 
+                 $data['result'] = $get; 
+		 //load the view and the layout
+		 $this->template->title('Add Grading System ' )->build('admin/addgrades', $data);
+		}
+	}
 
 	function delete($id = NULL, $page = 1)
 	{
@@ -329,6 +449,22 @@ $config = array(
 		);
 		$this->form_validation->set_error_delimiters("<br /><span class='error'>", '</span>');
 return $config; 
+	}
+
+	private function validation2()
+    {
+$config = array(
+	array(
+		'field' =>'grade',
+			   'label' => 'Grade',
+			   'rules' => 'required|xss_clean'),
+	array(
+		'field' =>'minimum_marks',
+			   'label' => 'Minimum Marks',
+			   'rules' => 'required|xss_clean'),     
+		);
+		$this->form_validation->set_error_delimiters("<br /><span class='error'>", '</span>');
+	return $config; 
 	}
         
 
