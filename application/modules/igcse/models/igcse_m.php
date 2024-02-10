@@ -14,6 +14,12 @@ class Igcse_m extends MY_Model{
         return $this->db->insert_id();
     }
 
+    //Create IGCSE Exam
+    function create_exam($data) {
+        $this->db->insert('igcse_exams', $data);
+        return $this->db->insert_id();
+    }
+
     function find($id)
     {
         return $this->db->where(array('id' => $id))->get('igcse')->row();

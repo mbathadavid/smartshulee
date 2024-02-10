@@ -12,6 +12,7 @@ class Admin extends Admin_Controller
             redirect('admin/login');
         }
         $this->load->model('igcse_m');
+        $this->load->model('exams/exams_m');
     }
 
     public function index()
@@ -160,8 +161,57 @@ class Admin extends Admin_Controller
     function exams($id) {
         $thread = $this->igcse_m->find($id);
 
+        if ($this->input->post()) {
+            $user = $this->ion_auth->get_user();
+
+            $form = [
+                'tid' => $thread->id,
+                'title' => $this->input->post('title'),
+                'term' => $thread->term,
+                'year' => $thread->year,
+                'type' => $this->input->post('type'),
+                'start_date' => strtotime($this->input->post('start_date')),
+                'end_date' => strtotime($this->input->post('end_date')),
+                'recording_end' => strtotime($this->input->post('recording_end_date')),
+                'description' => $this->input->post('description'),
+                'created_by' => $this->user->id,
+                'created_on' => time()
+            ];
+
+            $ok = $this->igcse_m->create_exam($form);
+
+            if ($ok)
+            {
+                $details = implode(' , ', $this->input->post());
+                $user = $this->ion_auth->get_user();
+                $log = array(
+                    'module' => $this->router->fetch_module(),
+                    'item_id' => $ok,
+                    'transaction_type' => $this->router->fetch_method(),
+                    'description' => base_url('admin') . '/' . $this->router->fetch_module() . '/' . $this->router->fetch_method() . '/' . $ok,
+                    'details' => $details,
+                    'created_by' => $user->id,
+                    'created_on' => time()
+                );
+
+                $this->ion_auth->create_log($log);
+
+                $this->session->set_flashdata('message', array('type' => 'success', 'text' => lang('web_create_success')));
+            }
+            else
+            {
+                $this->session->set_flashdata('message', array('type' => 'error', 'text' => lang('web_create_failed')));
+            }
+
+            redirect('admin/igcse/exams/'.$id);
+            
+        }
+
+        $range = range(date('Y') - 50, date('Y'));
+        $data['yrs'] = array_combine($range, $range);
         $data['thread'] = $thread;
         $data['exams'] = $this->igcse_m->get_thread_exams($id);
+        $data['classes'] = $this->exams_m->list_classes();
 
         $this->template->title('Igcse Exam Threads')->build('admin/exams', $data);
     }
