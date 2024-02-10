@@ -20,6 +20,11 @@ class Igcse_m extends MY_Model{
      }
 
 
+     //Get Exams
+     function get_thread_exams($tid) {
+        return $this->db->where(array('tid' => $tid))->get('igcse_exams')->result();
+     }
+
     function exists($id)
     {
           return $this->db->where( array('id' => $id))->count_all_results('igcse') >0;
