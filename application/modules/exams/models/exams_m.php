@@ -30,7 +30,10 @@ class Exams_m extends MY_Model
     {
         return $this->db->where(array('id' => $id))->get('exams')->row();
     }
-
+    function find1($id)
+    {
+        return $this->db->where(array('id' => $id))->get('igcse')->row();
+    }
     /**
      * Fetch Grading System
      * @param type $id
@@ -177,6 +180,18 @@ class Exams_m extends MY_Model
         return $this->db->insert_id();
     }
 
+
+    public function get_exams_by_tid($exid)
+    {
+        $this->db->select('*');
+        $this->db->from('igcse_exams');
+        $this->db->where('tid', $exid);
+        $this->db->limit(1); // Limit the result to 1 row
+        $query = $this->db->get();
+
+        return $query->row(); // Return the single row
+    }
+
     /**
      * fetch_grading System
      * 
@@ -273,6 +288,11 @@ class Exams_m extends MY_Model
         return $this->db->insert_id();
     }
 
+    function insert_marks1($data)
+    {
+        $this->db->insert('igcse_marks_list', $data);
+        return $this->db->insert_id();
+    }
     /**
      * Insert Sub units Marks
      * 

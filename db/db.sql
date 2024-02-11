@@ -58,3 +58,24 @@ CREATE TABLE IF NOT EXISTS `gs_grades` (
   `modified_on` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `igcse_marks_list` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `exams_id` int(11) NOT NULL,
+  `subject` int(11) NOT NULL,
+  `marks` int(11) NOT NULL,
+  `remarks` varchar(255) NOT NULL,
+  `out_of` int(11) NOT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `modified_by` int(11) DEFAULT NULL,
+  `created_on` int(11) DEFAULT NULL,
+  `modified_on` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=81 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=DYNAMIC;
+
+ALTER TABLE `igcse_marks_list`
+	ADD COLUMN `student` INT(11) NOT NULL AFTER `subject`;
+
+  ALTER TABLE `igcse_marks_list`
+	ADD COLUMN `type` INT(11) NOT NULL AFTER `exams_id`;

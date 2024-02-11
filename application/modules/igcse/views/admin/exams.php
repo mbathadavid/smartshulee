@@ -174,16 +174,12 @@
                                 <ul class="dropdown-menu">
                                     <?php
                                     foreach ($classes as $xid => $c) {
-                                        if ($c->rec == 2) {
+                                        
                                     ?>
-                                            <li><?php echo anchor('admin/exams/rec_lower/' . $p->id . '/' . $xid, $c->name); ?></li>
+                                            <li><?php echo anchor('admin/igcse/record/'. $thread->id.'/' . $p->id . '/' . $xid, $c->name); ?></li>
                                         <?php
-                                        } else {
-                                        ?>
-                                            <li><?php echo anchor('admin/exams/rec_upper/' . $p->id . '/' . $xid, $c->name); ?></li>
-                                    <?php
-                                        }
-                                    }
+                                       
+                                     }
                                     ?>
                                 </ul>
                             </div>

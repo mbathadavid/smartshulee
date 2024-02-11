@@ -13,6 +13,7 @@ class Admin extends Admin_Controller
         }
         $this->load->model('igcse_m');
         $this->load->model('exams/exams_m');
+        
     }
 
     public function index()
@@ -24,6 +25,7 @@ class Admin extends Admin_Controller
 
         //create pagination links
         $data['links'] = $this->pagination->create_links();
+        $data['classes'] = $this->exams_m->list_classes();
 
         //page number  variable
         $data['page'] = $page;
@@ -214,6 +216,221 @@ class Admin extends Admin_Controller
         $data['classes'] = $this->exams_m->list_classes();
 
         $this->template->title('Igcse Exam Threads')->build('admin/exams', $data);
+    }
+
+    public function record($thid,$exid, $id){
+
+        $students = [];
+        $sb = 0;
+        //push class name to next view
+        $class_name = $this->exams_m->populate('class_groups', 'id', 'name');
+        $exam = $this->exams_m->find1($thid);
+        $tar = $this->exams_m->get_stream($id);
+        $class_id = $tar->class;
+        $stream = $tar->stream;
+        $heading = 'Exam Marks For: <span style="color:blue">' . $class_name[$class_id] . '</span>';
+        $exam_type = $this->exams_m->get_exams_by_tid($thid);
+
+        $subjects = $this->exams_m->get_subjects($id, $exam->term);
+
+        // echo "<pre>";
+        // print_r($subjects);
+        // echo "</pre>";
+        // die;
+
+        $sel = 0;
+        if ($this->input->get('sb')) {
+            $sb = $this->input->get('sb');
+            $data['selected'] = isset($subjects[$sb]) ? $subjects[$sb] : [];
+            $row = $this->exams_m->fetch_subject($sb);
+            $rrname = $row ? ' - ' . $row->name : '';
+            $heading = 'Exam Marks For: <span style="color:blue">' . $class_name[$class_id] . $rrname . '</span>';
+
+            if ($row->is_optional == 2) {
+                $sel = 1;
+            }
+
+            $students = $this->exams_m->get_students($class_id, $stream);
+        }
+
+        $data['list_subjects'] = $this->exams_m->list_subjects();
+        $data['subjects'] = $subjects;
+        $data['class_name'] = $heading;
+        $data['assign'] = $sel;
+        $data['count_subjects'] = $this->exams_m->count_subjects($class_id, $exam->term);
+        $data['full_subjects'] = $this->exams_m->get_full_subjects();
+
+        //create control variables
+        $data['updType'] = 'create';
+        $data['page'] = '';
+        $data['exams'] = $this->exams_m->list_exams();
+        $data['grading'] = $this->exams_m->get_grading_system();
+        //Rules for validation
+        $this->form_validation->set_rules($this->rec_validation());
+
+        //validate the fields of form
+        if ($this->form_validation->run()) {
+            if ($this->input->get('sb')) {
+                $user = $this->ion_auth->get_user();
+                $inc = [];
+                $mkpost = $this->input->post();
+                if (isset($mkpost['done'])) {
+                    $inc = $mkpost['done'];
+                }
+                $sb = $this->input->get('sb');
+                $gd_id = $this->input->post('grading');
+                $marks = $this->input->post('marks');
+                $units = $this->input->post('units');
+               
+                
+                $this->exams_m->set_grading($exid, $id, $sb, $gd_id, $user->id);
+                $perf_list = $this->_prep_marks($sb, $exid, $marks, $units);
+
+                foreach ($perf_list as $dat) {
+                    $dat = (object) $dat;
+
+                    $mm = (object) $dat->marks;
+                    $mkcon = $mm->marks ? $mm->marks : 0;
+
+                    $fvalues = [
+                        'exams_id' => $dat->exams_id,
+                        'student' => $dat->student,
+                        'marks' => $mkcon,
+                        'type' =>  $exam_type->id,
+                        'out_of' =>  $dat->outof,
+                        'subject' => $mm->subject,
+                        'created_by' => $dat->created_by,
+                        'created_on' => time()
+                    ];
+
+                    $ok = $this->exams_m->insert_marks1($fvalues);
+
+                     }
+
+                if ($ok) {
+                    // $this->acl->audit($ok, implode(' , ', $svalues));
+
+                    $this->session->set_flashdata('message', array('type' => 'success', 'text' => lang('web_create_success')));
+                } else {
+                    $this->session->set_flashdata('message', array('type' => 'error', 'text' => lang('web_create_failed')));
+                }
+            } else {
+                $this->session->set_flashdata('message', array('type' => 'error', 'text' => 'Subject Not Specified'));
+            }
+            redirect('admin/igcse/');
+        } else {
+            $get = new StdClass();
+            foreach ($this->rec_validation() as $field) {
+                $get->{$field['field']} = set_value($field['field']);
+            }
+
+            $data['sb'] = $sb;
+            $data['result'] = $get;
+            $data['class_id'] = $id;
+            $data['exam_id'] = $exid;
+            $data['students'] = $students;
+
+            $this->template->title('Record Exam Marks')->build('admin/records', $data);
+        }
+
+    }
+    function _prep_marks($subject, $exm_mgmt_id, $marks = [], $units = [])
+    {
+        $perf_list = [];
+        $sub_marks = [];
+        $user = $this->ion_auth->get_user();
+        $outof = $this->input->post('outof');
+
+
+        // print_r($marks);
+        // die;
+        if ($units && !empty($units)) {
+            foreach ($units as $stid => $unmarks) {
+                foreach ($unmarks as $uid => $mk) {
+                    $sunits[] = array(
+                        'parent' => $subject,
+                        'unit' => $uid,
+                        'marks' => $mk
+                    );
+                }
+            }
+        }
+
+        foreach ($marks as $std => $score) {
+            $sunits = [];
+            $sub_marks = array(
+                'subject' => $subject,
+                'marks' => $score
+            );
+            if ($units && isset($units[$std])) {
+                $mine = $units[$std];
+                foreach ($mine as $uid => $mk) {
+                    $sunits[] = array(
+                        'parent' => $subject,
+                        'unit' => $uid,
+                        'marks' => $mk
+                    );
+                }
+            }
+            $perf_list[] = array(
+                'exams_id' => $exm_mgmt_id,
+                'student' => $std,
+                'marks' => $sub_marks,
+                'units' => $sunits,
+                'outof' => $outof,
+                'created_by' => $user->id,
+                'created_on' => time()
+            );
+        }
+        return $perf_list;
+    }
+    private function rec_validation()
+    {
+
+        $config = array(
+            array(
+                'field' => 'record_date',
+                'label' => 'Record Date',
+                'rules' => 'xss_clean'
+            ),
+            array(
+                'field' => 'exam_type',
+                'label' => 'The Exam',
+                'rules' => 'trim|xss_clean'
+            ),
+            array(
+                'field' => 'subject[]',
+                'label' => 'Subject',
+                'rules' => 'xss_clean'
+            ),
+            array(
+                'field' => 'student[]',
+                'label' => 'student',
+                'rules' => 'xss_clean'
+            ),
+            array(
+                'field' => 'total[]',
+                'label' => 'Total',
+                'rules' => 'xss_clean'
+            ),
+            array(
+                'field' => 'marks[]',
+                'label' => 'Marks',
+                'rules' => 'xss_clean'
+            ),
+            array(
+                'field' => 'grading',
+                'label' => 'Grading',
+                'rules' => 'required'
+            ),
+            array(
+                'field' => 'remarks[]',
+                'label' => 'Remarks',
+                'rules' => 'xss_clean'
+            ),
+        );
+        $this->form_validation->set_error_delimiters("<br/><span class='error'>", '</span>');
+        return $config;
     }
 
     function delete($id = NULL, $page = 1)
