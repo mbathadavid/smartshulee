@@ -6,6 +6,12 @@ if ($this->input->get('sb')) {
 } else {
   $sel = 0;
 }
+
+
+// echo "<pre>";
+// print_r($checkmarks);
+// echo "</pre>";
+
 ?>
 <div class="col-md-3">
   <div class="widget">
@@ -36,13 +42,22 @@ if ($this->input->get('sb')) {
 <div class="col-md-9">
   <div class="head">
     <div class="icon"><span class="icosg-target1"></span></div>
-    <h2>Exams Management</h2>
+    <h2><?php echo $igcse_exam->title . ' ( Term ' . $igcse_exam->term . ' - ' . $igcse_exam->year . ')' ?> Marks Management</h2>
     <div class="right">
       <?php echo anchor('admin/exams/', '<i class="glyphicon glyphicon-list">
                 </i> List All', 'class="btn btn-primary"'); ?>
     </div>
   </div>
   <div class="block-fluid">
+        <!-- Marks Found alert -->
+        <?php if (isset($checkmarks) && count($checkmarks) > 0) { ?>
+        <div class="alert alert-success alert-dismissible">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            <strong>Alert!</strong> Some Previously Added Marks Were Found for <b><?php echo count($checkmarks) ?></b> students. You can only edit these Marks.
+        </div>
+        <?php } ?>
+        <!-- Marks Fiound Alert End -->
+
     <?php
     $attributes = array('class' => 'form-horizontal', 'id' => '');
     echo form_open_multipart(current_url() . '?sb=' . $sb, $attributes);
@@ -59,7 +74,7 @@ if ($this->input->get('sb')) {
     <div class='form-group'>
       <div class="col-md-3">Out_Of <span class='required'>*</span></div>
       <div class="col-md-9">
-        <?php echo form_input('outof', $this->input->post() ? $this->input->post('outof') : 70, ' id="outof" class="ol" style="width:60%" placeholder="Marks out of" '); ?>
+        <?php echo form_input('outof', $this->input->post() ? $this->input->post('outof') : '', ' id="outof" class="ol" style="width:60%" placeholder="Marks out of" '); ?>
       </div>
     </div>
     <h3 style="text-align:center; text-decoration:underline"><?php echo $class_name; ?></h3>
@@ -133,6 +148,8 @@ if ($this->input->get('sb')) {
                       $usetval = $this->input->post('units');
                       $uval = $usetval[$post->id][$utk];
                     }
+
+                    echo $uval;
                     $unm = 'units[' . $post->id . '][' . $utk . ']';
                     echo form_input($unm, $uval, ' title="' . $cap . '" placeholder="Marks" class="umarks mkd_' . $sb . '" ');
                     echo form_error('units');
@@ -145,12 +162,21 @@ if ($this->input->get('sb')) {
               <td>
                 <?php
                 $val = '';
-                if ($this->input->post('marks')) {
-                  $setval = $this->input->post('marks');
-                  $val = $setval[$post->id];
+                if (count($checkmarks) > 0) {
+                  $ckmarks = $this->igcse_m->check_student_marks($thid,$exid,$sb,$std->id);
+
+                  if ($ckmarks) {
+                    $val = $ckmarks->marks;
+                  }
+                } else {
+                  if ($this->input->post('marks')) {
+                    $setval = $this->input->post('marks');
+                    $val = $setval[$post->id];
+                  }
                 }
+
                 $nm = 'marks[' . $post->id . ']';
-                echo form_input($nm, $val, '  placeholder="Marks" class="marks ' . $tot_class . '" ');
+                echo form_input($nm, $val, '  placeholder="Enter Marks" class="marks ' . $tot_class . ' bg-info" ');
                 echo form_error('marks');
                 ?>
               </td>
@@ -170,7 +196,7 @@ if ($this->input->get('sb')) {
       <div class='form-group'>
         <div class="col-md-10">
           <?php echo form_submit('submit', ($updType == 'edit') ? 'Update' : 'Save', (($updType == 'create') ? "id='submit' class='btn btn-primary''" : "id='submit' class='btn btn-primary'")); ?>
-          <?php echo anchor('admin/exams', 'Cancel', 'class="btn btn-danger"'); ?>
+          <?php echo anchor('admin/igcse/exams', 'Cancel', 'class="btn btn-danger"'); ?>
         </div>
       </div>
 
@@ -263,19 +289,22 @@ if ($this->input->get('sb')) {
   $(document).ready(function() {
     // Function to validate total marks
     function validateTotalMarks() {
-      var totalMarks = 0;
+      var marksArr = [];
       // Loop through each row in the table
       $('#scores tbody tr').each(function() {
         // Get the total marks for the current row
-        var marks = parseInt($(this).find('.marks').val()) || 0;
-        totalMarks += marks;
+        var marks = parseInt($(this).find('.marks').val());
+        // totalMarks += marks;
+        marksArr.push(marks);
       });
       // Get the "out of" value
-      var outOf = parseInt($('#outof').val()) || 0;
-      // Check if total marks exceeds "out of" value
-      if (totalMarks > outOf) {
+      var outOf = parseInt($('#outof').val());
+
+      var check = isAnyElementGreaterThan(marksArr,outOf);
+
+      if (check == false) {
         // Show error message and prevent form submission
-        alert('Total marks cannot exceed the specified "out of" value.');
+        alert('Some  markst exceed the specified "out of" value. Kindly Check on this');
         return false;
       }
       return true; // Total marks are valid
@@ -283,7 +312,19 @@ if ($this->input->get('sb')) {
 
     // Event listener for form submission
     $('form').submit(function() {
-      return validateTotalMarks(); // Validate total marks before form submission
+      return validateTotalMarks(); 
     });
+
+
+    function isAnyElementGreaterThan(marksArr,outof) {
+      for (var i = 0; i < marksArr.length; i++) {        
+          if (marksArr[i] > outof) {
+            return false; 
+          }
+      }
+      return true; 
+    }
+
+
   });
 </script>

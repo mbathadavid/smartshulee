@@ -25,6 +25,32 @@ class Igcse_m extends MY_Model{
         return $this->db->where(array('id' => $id))->get('igcse')->row();
      }
 
+     //Find Actual IGCSE Exam
+     function find_igcse_exam($id) {
+        return $this->db->where(array('id' => $id))->get('igcse_exams')->row();
+     }
+
+
+     //Check whether there are previously entered marks for that subject
+     function check_marks($tid,$exid,$sub) {
+        return $this->db
+                    ->where(array('tid' => $tid))
+                    ->where(array('exams_id' => $exid))
+                    ->where(array('subject' => $sub))
+                    ->get('igcse_marks_list')
+                    ->result();
+     }
+
+     //Function to get Marks for a student
+     function check_student_marks($tid,$exid,$sub,$stu) {
+        return $this->db
+                ->where(array('tid' => $tid))
+                ->where(array('exams_id' => $exid))
+                ->where(array('subject' => $sub))
+                ->where(array('student' => $stu))
+                ->get('igcse_marks_list')
+                ->row();
+     }
 
      //Get Exams
      function get_thread_exams($tid) {
@@ -33,7 +59,7 @@ class Igcse_m extends MY_Model{
 
     function exists($id)
     {
-          return $this->db->where( array('id' => $id))->count_all_results('igcse') >0;
+        return $this->db->where( array('id' => $id))->count_all_results('igcse') >0;
     }
 
 
@@ -46,6 +72,11 @@ class Igcse_m extends MY_Model{
     function update_attributes($id, $data)
     {
          return  $this->db->where('id', $id) ->update('igcse', $data);
+    }
+
+    function update_marks_attributes($id, $data)
+    {
+        return $this->db->where('id', $id)->update('igcse_marks_list', $data);
     }
 
 function populate($table,$option_val,$option_text)
