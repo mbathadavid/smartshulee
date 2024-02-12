@@ -181,6 +181,15 @@ class Exams_m extends MY_Model
     }
 
 
+    public function get_exams_by_thread($exid)
+    {
+        $this->db->select('*');
+        $this->db->from('igcse_exams');
+        $this->db->where('tid', $exid);
+        $query = $this->db->get();
+        return $query->result(); // Return the single row
+    }
+
     public function get_exams_by_tid($exid)
     {
         $this->db->select('*');
@@ -191,6 +200,17 @@ class Exams_m extends MY_Model
 
         return $query->row(); // Return the single row
     }
+
+
+    public function get_exams()
+    {
+        $this->db->select('*');
+        $this->db->from('igcse');
+       $query = $this->db->get();
+
+        return $query->result(); // Return the single row
+    }
+
 
     /**
      * fetch_grading System

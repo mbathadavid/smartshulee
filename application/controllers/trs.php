@@ -1102,8 +1102,13 @@ class Trs extends Trs_Controller
         $this->pagination->initialize($config);
         $page = ($this->uri->segment(4)) ? $this->uri->segment(4) : 1;
         $data['exams'] = $this->exams_m->paginate_all($config['per_page'], $page);
+        $data['thread']= (object) $this->exams_m->get_exams();
         //create pagination links
         $data['links'] = $this->pagination->create_links();
+
+
+       
+        
 
         $data['page'] = $page;
         $data['per'] = $config['per_page'];
@@ -1112,6 +1117,20 @@ class Trs extends Trs_Controller
         $this->template->title('Marks')->build('trs/exam/record', $data);
     }
 
+    public function fetch_exams($threadId)
+    {
+        $exams = $this->exams_m->get_exams_by_thread($threadId);
+       
+        echo json_encode($exams);
+       
+    }
+
+    function record_marks()
+    {
+        $this->template->title('Attendance')->build('trs/exam/record_marks');
+    }
+
+    
     /**
      * Record Attendance
      */

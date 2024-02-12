@@ -1,4 +1,6 @@
 <?php
+
+
 if ($this->input->get('sb')) {
   $sel = $this->input->get('sb');
 } elseif ($this->session->userdata('sub')) {
@@ -38,9 +40,9 @@ if ($this->input->get('sb')) {
     <div class="icon"><span class="icosg-target1"></span></div>
     <h2>Exams Management</h2>
     <div class="right">
-      <?php echo anchor('admin/exams/', '<i class="glyphicon glyphicon-list">
-                </i> List All', 'class="btn btn-primary"'); ?>
-    </div>
+      <?php
+       echo anchor('admin/igcse/exams/'. $this->uri->segment(4), '<i class="glyphicon glyphicon-list">
+                </i> List All', 'class="btn btn-primary"'); ?>    </div>
   </div>
   <div class="block-fluid">
     <?php
@@ -261,27 +263,24 @@ if ($this->input->get('sb')) {
 
 <script>
   $(document).ready(function() {
-    // Function to validate total marks
     function validateTotalMarks() {
       var totalMarks = 0;
       // Loop through each row in the table
       $('#scores tbody tr').each(function() {
-        // Get the total marks for the current row
+
         var marks = parseInt($(this).find('.marks').val()) || 0;
         totalMarks += marks;
       });
-      // Get the "out of" value
+
       var outOf = parseInt($('#outof').val()) || 0;
-      // Check if total marks exceeds "out of" value
+
       if (totalMarks > outOf) {
-        // Show error message and prevent form submission
         alert('Total marks cannot exceed the specified "out of" value.');
         return false;
       }
       return true; // Total marks are valid
     }
 
-    // Event listener for form submission
     $('form').submit(function() {
       return validateTotalMarks(); // Validate total marks before form submission
     });

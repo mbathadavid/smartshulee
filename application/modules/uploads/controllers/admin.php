@@ -79,11 +79,326 @@ class Admin extends Admin_Controller
 
 			
 		}
-		
-		
-		
-				
-			    //Upload Student			
+
+
+
+    function narok_upload()
+    {
+        $this->load->model('fee_arrears/fee_arrears_m');
+        require_once APPPATH . 'libraries/xlsxreader.php';
+
+        $reader = new XLSXReader(FCPATH . 'uploads/new.xlsx');
+        $reader->decodeUTF8(true);
+        $reader->read();
+        $woksh = array();
+
+        $sheets = $reader->getSheets();
+
+        $i = 0;
+        foreach ($sheets as $sheet) {
+            $i++;
+            $data = $reader->getSheetDatas($sheet["id"]);
+            $titles = $data[0];
+            unset($data[0]);
+
+            foreach ($data as $rid => $row) {
+                $nwrow = array();
+                foreach ($row as $cid => $cell) {
+                    if (!isset($titles[$cid])) {
+                        echo '<pre>xx  ';
+                        print_r("[{$cid}] not set");
+                        print_r($titles);
+                        print_r($row);
+                        echo '</pre>';
+                        die;
+                    }
+                    $nwrow[$titles[$cid]] = trim($cell);
+                }
+                foreach ($titles as $tl) {
+                    if (!isset($nwrow[$tl])) {
+                        $nwrow[$tl] = '';
+                    }
+                }
+                $woksh[] = $nwrow;
+            }
+            break;
+        }
+
+        $skz = 0;
+
+        echo '<pre>';
+        print_r($woksh);
+        echo '</pre>';
+        die;
+
+
+
+        $emm = 0;
+        $school_mail = "@test.com";
+        $prefix = "TEST";
+        foreach ($woksh as $srow) {
+            $skz++;
+            $st = (object) $srow;
+
+            $exists = 0;
+            $ex_row = (object) [];
+            // $p_phone = explode('/', $st->p_phone);
+
+            $first_name = $st->first_name;
+            $middle_name = $st->middle_name;
+            $last_name = $st->last_name;
+
+            //  $student = explode(' ',$st->student);
+            // $first_name = $student[0];
+            // $middle_name = isset($student[1]) ? $student[1] : '';
+            // $last_name = isset($student[2]) ? $student[2] : '';
+
+
+            $p_first = $st->p_first ? $st->p_first : 'Parent';
+            $p_middle = $st->p_middle;
+            $p_last = $st->p_last ? $st->p_last : 'Parent';
+            $p_phone = $st->p_phone;
+            $class = $st->class;
+
+            $last_adm = $this->admission_m->get_last_id();
+            $number = $last_adm + 1;
+
+            $adno = $st->adm_no ? $st->adm_no : $prefix . str_pad($number, 3, '0', 0);
+
+            // $adno =  $st->admno;
+
+            // if (substr($p_phone[0], 0, 1) != '0')
+            // {
+            //     $p_phone1 = strlen($p_phone[0]) == 0 ? '' : '0' . $p_phone[0];
+            // }
+
+            // if (substr($p_phone[1], 0, 1) != '0')
+            // {
+            //     $p_phone2 = strlen($p_phone[1]) == 0 ? '' : '0' . $p_phone[1];
+            // }
+
+            if (substr($st->p_phone, 0, 1) != '0') {
+                $p_phone = strlen($st->p_phone) == 0 ? '' : '0' . $p_phone;
+            }
+
+            $p2_phone = $st->p2_phone;
+            if (substr($st->p2_phone, 0, 1) != '0') {
+                $phone2 = strlen($st->p2_phone) == 0 ? '' : '0' . $p2_phone;
+            }
+
+            $phone = $p_phone;
+
+            // echo $phone;die;
+
+
+            if (empty($phone)) {
+                // $phone = empty($st->m_phone) ? FALSE : $st->m_phone;
+                $phone = "07";
+            }
+
+
+            $pemail = $st->email;
+            $name = strtolower(str_replace(' ', '', $p_first . '.' . $p_last));
+            if (empty($pemail)) {
+                $pemail = $name . '-' . $skz . $school_mail;
+
+                if ($this->admission_m->user_email_exists($pemail)) {
+                    $pemail = $name . '-' . $skz . $school_mail;
+                }
+                if ($this->admission_m->user_email_exists($pemail)) {
+                    echo '<pre>Still exists';
+                    print_r($pemail);
+                    print_r($srow);
+                    $pemail = $name . '-' . $skz . $school_mail;
+                    print_r($pemail);
+                    echo '</pre>';
+                }
+            } else {
+                $exs_id = $this->admission_m->parent_exists($pemail, $phone);
+                if ($exs_id) {
+                    $exists = 1;
+                    $ex_row = $this->admission_m->get_parent($exs_id);
+                }
+            }
+
+
+            //parent exists
+            if ($exists) {
+                $pid = $ex_row->user_id;
+                $ps_id = $ex_row->id;
+            } else {
+                $ppassword = '12345678'; //temporary password
+                $additional = [
+                    'first_name' => $p_first,
+                    'last_name' => $p_last,
+                    'phone' => $phone,
+                    'me' => $this->ion_auth->get_user()->id,
+                ];
+                $pt = explode('@', $pemail);
+                $pid = $this->ion_auth->register($pt[0], $ppassword, $pemail, $additional);
+            }
+            if ($pid) {
+                $this->ion_auth->add_to_group(6, $pid);
+                /* End Parent Add to Users */
+
+                $pdata = [
+                    'first_name' => $p_first,
+                    'last_name' => $p_last,
+                    'f_middle_name' => $st->p_middle,
+                    'email' => $pemail,
+                    'identity' => '',
+                    'f_relation' => '',
+                    'f_id' => $st->p2_first,
+                    'm_id' => $st->p2_first,
+                    'mother_fname' => $st->p2_first,
+                    'mother_lname' => $st->p2_last,
+                    'm_middle_name' => $st->p2_middle,
+                    'mother_email' => $st->p2_email,
+                    'mother_phone' => $st->p2_phone,
+                    'status' => 1,
+                    'user_id' => $pid,
+                    'phone' => $phone,
+                    'phone2' => '',
+                    'address' => '',
+                    'created_on' => time(),
+                    'created_by' => $this->ion_auth->get_user()->id,
+                    'occupation' => '',
+                    'mother_occupation' => $st->mother_occupation,
+
+                ];
+
+                $ps_id = $exists ? $ex_row->id : $this->admission_m->save_parent($pdata); //parent id
+            } else {
+                echo '<pre>';
+                print_r($pemail);
+                print_r($srow);
+                echo '</pre>';
+                die('no pid');
+            }
+
+            /* Create Student User */
+            // $student = explode(' ',$st->student);
+            // $first_name = $student[0];
+            // $middle_name = isset($student[1]) ? $student[1] : '';
+            // $last_name = isset($student[2]) ? $student[2] : '';
+
+            $username = strtolower(str_replace(' ', '', $first_name . '.' . $last_name));
+            $email = $username . '-' . $adno . $school_mail;
+            $password = '12345678'; //temporary password
+
+            $additional_data = [
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'me' => $this->ion_auth->get_user()->id,
+            ];
+            if ($this->admission_m->user_email_exists($email)) {
+                $email = $username . $adno . $school_mail;
+            }
+            $u_id = $this->ion_auth->register($username, $password, $email, $additional_data);
+
+
+            $gender = 1;
+
+            if ($st->gender == "F" || $st->gender == "Female" || $st->gender == "f" || $st->gender == "female" || $st->gender == "FEMALE") {
+                $gender = 2;
+            }
+
+            $timestamp = $this->from_excel($st->dob);
+            $doa = $st->admission_date ? $this->from_excel($st->admission_date) : '';
+            $dbb = $st->dob ? $this->from_excel($st->dob) : '';
+            $sdata = [
+                'first_name' => $first_name,
+                'middle_name' => $middle_name,
+                'last_name' => $last_name,
+                'house' => '',
+                'boarding_day' => '',
+                'email' => $email,
+                'user_id' => $u_id,
+                'parent_id' => $ps_id,
+                'parent_user' => $pid,
+                'gender' => $gender,
+                'status' => 1,
+                'dob' => $dobb,
+                'admission_date' => $doa,
+                'admission_number' => $adno,
+                'class' => $st->class,
+                'created_on' => time(),
+                'created_by' => $this->ion_auth->get_user()->id,
+                'scholarship_type' => '',
+                'upi_number' => '',
+                'residence' => $st->residence,
+                'allergies' => $st->allergies
+            ];
+
+
+
+            $rec = $this->admission_m->create($sdata); //student admission id
+
+
+            $ec = array(
+                    'parent_id' => $ps_id,
+                    'student' => $rec,
+                    'name' => $st->name,
+                    'middle_name' => $st->contact_m_name,
+                    'last_name' => $st->contact_l_name,
+                    'relation' => $st->contact_relation,
+                    'phone' => $st->contact_phone,
+                    'email' => $st->contact_email,
+                    'provided_by' => '',
+                    'id_no' => '',
+                    'address' => '',
+                    'created_by' => $this->ion_auth->get_user()->id,
+                    'created_on' => time()
+                );
+
+            $this->admission_m->insert_emergency_contacts($ec);
+
+            /*if($rec && $st->balance !=0)
+            {
+
+                $bal = [
+                    'student' => $rec,
+                    'amount' => $st->balance,
+                    'term' => 2,
+                    'year' => 2022,
+                    'created_by' => $user->id,
+                    'created_on' => time()
+                ];
+
+                $this->fee_arrears_m->create($bal);
+            }
+            */
+
+            if (!$rec) {
+                echo '<pre>';
+                print_r('norec -------------------');
+                print_r($st);
+                echo '</pre>';
+                return FALSE;
+            } else {
+                /** Put in History - run admin/sync after importing data** */
+                //assign parent
+                $fss = array(
+                    'parent_id' => $ps_id,
+                    'student_id' => $rec,
+                    'status' => 1,
+                    'created_on' => time(),
+                    'created_by' => $this->ion_auth->get_user()->id
+                );
+                $this->admission_m->assign_parent($fss);
+                //add to students group
+                $this->ion_auth->add_to_group(8, $u_id);
+            }
+        }
+
+        echo '<pre>';
+        echo '<br>';
+        print_r('Done ' . $skz);
+        echo '</pre>';
+    }		
+			    
+        
+        //Upload Student			
         function upload_student_det()
         {
                 $class = $this->input->post('class');

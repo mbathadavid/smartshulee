@@ -230,11 +230,12 @@ class Admin extends Admin_Controller
         $stream = $tar->stream;
         $heading = 'Exam Marks For: <span style="color:blue">' . $class_name[$class_id] . '</span>';
         $exam_type = $this->exams_m->get_exams_by_tid($thid);
-
+    
+        
         $subjects = $this->exams_m->get_subjects($id, $exam->term);
 
         // echo "<pre>";
-        // print_r($subjects);
+        // print_r($tid);
         // echo "</pre>";
         // die;
 
