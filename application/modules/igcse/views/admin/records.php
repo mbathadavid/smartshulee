@@ -66,7 +66,7 @@ if ($this->input->get('sb')) {
     <div class="form-group">
       <div class="row">
         <div class="col-md-3">&nbsp;</div>
-       
+
       </div>
     </div>
     <?php
@@ -255,6 +255,35 @@ if ($this->input->get('sb')) {
         event.preventDefault();
         notify('Only Numbers allowed');
       }
+    });
+  });
+</script>
+
+<script>
+  $(document).ready(function() {
+    // Function to validate total marks
+    function validateTotalMarks() {
+      var totalMarks = 0;
+      // Loop through each row in the table
+      $('#scores tbody tr').each(function() {
+        // Get the total marks for the current row
+        var marks = parseInt($(this).find('.marks').val()) || 0;
+        totalMarks += marks;
+      });
+      // Get the "out of" value
+      var outOf = parseInt($('#outof').val()) || 0;
+      // Check if total marks exceeds "out of" value
+      if (totalMarks > outOf) {
+        // Show error message and prevent form submission
+        alert('Total marks cannot exceed the specified "out of" value.');
+        return false;
+      }
+      return true; // Total marks are valid
+    }
+
+    // Event listener for form submission
+    $('form').submit(function() {
+      return validateTotalMarks(); // Validate total marks before form submission
     });
   });
 </script>
