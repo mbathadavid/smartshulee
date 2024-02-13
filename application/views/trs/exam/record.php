@@ -1,10 +1,10 @@
 <?php
 
-// $subjects = $this->exams_m->get_subjects($id, $exam->term);
+$subjects = $this->exams_m->get_subjects(7, 1);
 
-// echo "<pre>";
-// print_r($thread->term);
-// echo "</pre>";
+echo "<pre>";
+print_r($subjects);
+echo "</pre>";
 ?>
 
 <div class="portlet mt-2">
@@ -28,7 +28,7 @@
                 <div class="row">
                     <div class="col-md-12 col-sm-12">
                         <?php echo form_open(current_url()) ?>
-                        <div class="col-sm-4">
+                        <div class="col-sm-3">
                             <label>Class</label>
                             <?php
                             echo form_dropdown('class', ['' => ''] + $this->streams, $this->input->post('class'), 'class="select" required')
@@ -48,14 +48,14 @@
                         </div>
 
 
-                        <div class="col-sm-4">
+                        <div class="col-sm-3">
                             <label>Exam</label>
                             <select name="exam" id="exam-dropdown" class="select" required>
                                 <option value="">Select an exam</option>
                             </select>
                         </div>
 
-                        <div class="col-sm-4">
+                        <div class="col-sm-3">
                             <label>Subject</label>
                             <select name="exam" id="exam-dropdown" class="select" required>
                                 <option value="">Select an exam</option>
