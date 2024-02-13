@@ -79,3 +79,6 @@ ALTER TABLE `igcse_marks_list`
 
   ALTER TABLE `igcse_marks_list`
 	ADD COLUMN `type` INT(11) NOT NULL AFTER `exams_id`;
+
+ALTER TABLE `igcse_marks_list`
+	ADD COLUMN `tid` INT(11) NULL DEFAULT NULL AFTER `id`;

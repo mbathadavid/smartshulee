@@ -218,8 +218,7 @@ class Admin extends Admin_Controller
         $this->template->title('Igcse Exam Threads')->build('admin/exams', $data);
     }
 
-    public function record($thid,$exid, $id){
-
+    public function record($thid,$exid,$id){
         $students = [];
         $sb = 0;
         //push class name to next view
@@ -251,6 +250,7 @@ class Admin extends Admin_Controller
                 $sel = 1;
             }
 
+            $data['checkmarks'] = $this->igcse_m->check_marks($thid,$exid,$sb);
             $students = $this->exams_m->get_students($class_id, $stream);
         }
 
@@ -260,6 +260,9 @@ class Admin extends Admin_Controller
         $data['assign'] = $sel;
         $data['count_subjects'] = $this->exams_m->count_subjects($class_id, $exam->term);
         $data['full_subjects'] = $this->exams_m->get_full_subjects();
+        $data['thid'] = $thid;
+        $data['exid'] = $exid;
+        $data['sb'] = $sb;
 
         //create control variables
         $data['updType'] = 'create';
@@ -271,6 +274,11 @@ class Admin extends Admin_Controller
 
         //validate the fields of form
         if ($this->form_validation->run()) {
+            // echo "<pre>";
+            //     print_r($this->input->post());
+            // echo "</pre>";
+            // die;
+
             if ($this->input->get('sb')) {
                 $user = $this->ion_auth->get_user();
                 $inc = [];
@@ -282,9 +290,10 @@ class Admin extends Admin_Controller
                 $gd_id = $this->input->post('grading');
                 $marks = $this->input->post('marks');
                 $units = $this->input->post('units');
-               
+                $k = 0;
+                $kk = 0;
                 
-                $this->exams_m->set_grading($exid, $id, $sb, $gd_id, $user->id);
+                // $this->exams_m->set_grading($exid, $id, $sb, $gd_id, $user->id);
                 $perf_list = $this->_prep_marks($sb, $exid, $marks, $units);
 
                 foreach ($perf_list as $dat) {
@@ -294,6 +303,7 @@ class Admin extends Admin_Controller
                     $mkcon = $mm->marks ? $mm->marks : 0;
 
                     $fvalues = [
+                        'tid' => $thid,
                         'exams_id' => $dat->exams_id,
                         'student' => $dat->student,
                         'marks' => $mkcon,
@@ -304,17 +314,28 @@ class Admin extends Admin_Controller
                         'created_on' => time()
                     ];
 
-                    $ok = $this->exams_m->insert_marks1($fvalues);
+                    //Check if marks Exists to Update
+                    $ckmarks = $this->igcse_m->check_student_marks($thid,$exid,$sb,$dat->student);
+
+                    if ($ckmarks) {
+                        $k++;
+                        $done = $this->igcse_m->update_marks_attributes($ckmarks->id,['marks' => $mkcon]);
+                    } else {
+                        $kk++;
+                        $ok = $this->exams_m->insert_marks1($fvalues);
+                    }
+                    
 
                      }
 
-                if ($ok) {
+                // if ($ok) {
                     // $this->acl->audit($ok, implode(' , ', $svalues));
+                    $mess = $kk.' Marks Inserted Successfully. '.$k.'Marks Updated Successfully';
 
-                    $this->session->set_flashdata('message', array('type' => 'success', 'text' => lang('web_create_success')));
-                } else {
-                    $this->session->set_flashdata('message', array('type' => 'error', 'text' => lang('web_create_failed')));
-                }
+                    $this->session->set_flashdata('message', array('type' => 'success', 'text' => $mess));
+                // } else {
+                //     $this->session->set_flashdata('message', array('type' => 'error', 'text' => lang('web_create_failed')));
+                // }
             } else {
                 $this->session->set_flashdata('message', array('type' => 'error', 'text' => 'Subject Not Specified'));
             }
@@ -330,6 +351,7 @@ class Admin extends Admin_Controller
             $data['class_id'] = $id;
             $data['exam_id'] = $exid;
             $data['students'] = $students;
+            $data['igcse_exam'] = $this->igcse_m->find_igcse_exam($exid);
 
             $this->template->title('Record Exam Marks')->build('admin/records', $data);
         }
