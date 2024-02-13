@@ -214,8 +214,28 @@ class Admin extends Admin_Controller
         $data['thread'] = $thread;
         $data['exams'] = $this->igcse_m->get_thread_exams($id);
         $data['classes'] = $this->exams_m->list_classes();
+        $data['id'] = $id;
 
         $this->template->title('Igcse Exam Threads')->build('admin/exams', $data);
+    }
+
+    //Compute Marks
+    public function compute($id) {
+        $thread = $this->igcse_m->find($id);
+        $exams = $this->igcse_m->get_thread_exams($id);
+
+        if ($this->input->post()) {
+            echo "<pre>";
+                print_r($this->input->post());
+            echo "</pre>";
+            die;
+        }
+
+        $data['thread'] = $thread;
+        $data['exams'] = $exams;
+        $data['id'] = $id;
+
+        $this->template->title('Compute Marks')->build('admin/compute', $data);
     }
 
     public function record($thid,$exid,$id){
@@ -304,6 +324,8 @@ class Admin extends Admin_Controller
 
                     $fvalues = [
                         'tid' => $thid,
+                        'class' => $id,
+                        'class_group' => $class_id,
                         'exams_id' => $dat->exams_id,
                         'student' => $dat->student,
                         'marks' => $mkcon,
@@ -319,7 +341,7 @@ class Admin extends Admin_Controller
 
                     if ($ckmarks) {
                         $k++;
-                        $done = $this->igcse_m->update_marks_attributes($ckmarks->id,['marks' => $mkcon]);
+                        $done = $this->igcse_m->update_marks_attributes($ckmarks->id,['marks' => $mkcon,'modified_on' => time(),'modified_by' => $user->id]);
                     } else {
                         $kk++;
                         $ok = $this->exams_m->insert_marks1($fvalues);
@@ -339,7 +361,7 @@ class Admin extends Admin_Controller
             } else {
                 $this->session->set_flashdata('message', array('type' => 'error', 'text' => 'Subject Not Specified'));
             }
-            redirect('admin/igcse/');
+            redirect('admin/igcse/exams/'.$thid);
         } else {
             $get = new StdClass();
             foreach ($this->rec_validation() as $field) {

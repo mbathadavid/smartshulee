@@ -82,3 +82,7 @@ ALTER TABLE `igcse_marks_list`
 
 ALTER TABLE `igcse_marks_list`
 	ADD COLUMN `tid` INT(11) NULL DEFAULT NULL AFTER `id`;
+
+ALTER TABLE `igcse_marks_list`
+	ADD COLUMN `class` INT(11) NULL DEFAULT NULL AFTER `tid`,
+	ADD COLUMN `class_group` INT(11) NULL DEFAULT NULL AFTER `class`;

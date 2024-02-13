@@ -57,11 +57,20 @@ class Igcse_m extends MY_Model{
         return $this->db->where(array('tid' => $tid))->get('igcse_exams')->result();
      }
 
+
+     //Get Cats Count 
+     function cats($tid) {
+        return $this->db->where(array('tid' => $tid))->where('type',2)->get('igcse_exams')->result();
+     }
+
+     function mains($tid) {
+        return $this->db->where(array('tid' => $tid))->where('type',1)->get('igcse_exams')->result();
+     }
+
     function exists($id)
     {
         return $this->db->where( array('id' => $id))->count_all_results('igcse') >0;
     }
-
 
     function count()
     {
