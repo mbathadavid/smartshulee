@@ -20,16 +20,31 @@ class Igcse_m extends MY_Model{
         return $this->db->insert_id();
     }
 
+    //Create a Record
+    function create_rec($table,$data) {
+        $this->db->insert($table, $data);
+        return $this->db->insert_id();
+    }
+
     function find($id)
     {
         return $this->db->where(array('id' => $id))->get('igcse')->row();
-     }
+    }
 
      //Find Actual IGCSE Exam
      function find_igcse_exam($id) {
         return $this->db->where(array('id' => $id))->get('igcse_exams')->row();
      }
 
+     //Function to Retrieve Grading System
+     function retrieve_grading($gid) {
+        return $this->db->where(array('grade_id' => $gid))->get('gs_grades')->result();
+     }
+
+     //Get marks for ranking 
+     function get_computed_marks() {
+        return $this->db->get('igcse_computed_marks')->result();
+     }
 
      //Check whether there are previously entered marks for that subject
      function check_marks($tid,$exid,$sub) {
@@ -57,11 +72,30 @@ class Igcse_m extends MY_Model{
         return $this->db->where(array('tid' => $tid))->get('igcse_exams')->result();
      }
 
+
+     //Get marks by class stream
+     function marks_by_stream($tid,$class) {
+        return $this->db->where(array('tid' => $tid))->where('class',$class)->get('igcse_marks_list')->result();
+     }
+
+      //Get marks by class stream
+      function marks_by_group($tid,$class) {
+        return $this->db->where(array('tid' => $tid))->where('class_group',$class)->get('igcse_marks_list')->result();
+     }
+
+     //Get Cats Count 
+     function cats($tid) {
+        return $this->db->where(array('tid' => $tid))->where('type',2)->get('igcse_exams')->result();
+     }
+
+     function mains($tid) {
+        return $this->db->where(array('tid' => $tid))->where('type',1)->get('igcse_exams')->result();
+     }
+
     function exists($id)
     {
         return $this->db->where( array('id' => $id))->count_all_results('igcse') >0;
     }
-
 
     function count()
     {
@@ -72,6 +106,11 @@ class Igcse_m extends MY_Model{
     function update_attributes($id, $data)
     {
          return  $this->db->where('id', $id) ->update('igcse', $data);
+    }
+
+    function update_table($id, $table, $data)
+    {
+         return  $this->db->where('id', $id) ->update($table, $data);
     }
 
     function update_marks_attributes($id, $data)

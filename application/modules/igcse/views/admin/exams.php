@@ -154,7 +154,11 @@
             <tbody>
                 <?php
                 $i = 0;
-                
+
+                // echo "<pre>";
+                //     print_r($classes);
+                // echo "</pre>";
+
                 foreach ($exams as $p) :
                     $i++;
                 ?>
@@ -183,26 +187,7 @@
                                     ?>
                                 </ul>
                             </div>
-                            <div class="btn-group">
-                                <button class="btn btn-success">Edit Marks</button>
-                                <button class="btn  btn-success dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
-                                <ul class="dropdown-menu">
-                                    <?php
-                                    foreach ($classes as $xid => $cl) {
-                                        if ($cl->rec == 2) {
-                                    ?>
-                                            <li><?php echo anchor('admin/exams/rec_lower/' . $p->id . '/' . $xid, $cl->name); ?></li>
-                                        <?php
-                                        } else {
-                                        ?>
-                                            <li><?php echo anchor('admin/exams/bulk_edit/' . $p->id . '/' . $xid, $cl->name); ?></li>
-                                    <?php
-                                        }
-                                    }
-                                    ?>
-                                </ul>
-                            </div>
-                            <?php echo anchor('admin/exams/bulk/' . $p->id, 'Report Forms', 'class="btn btn-success"'); ?>
+                            <?php echo anchor('admin/igcse/bulk/' . $p->id, 'Report Forms', 'class="btn btn-success"'); ?>
                             <div class="btn-group">
                                 <a class="btn btn-primary " href=""><span class="glyphicon glyphicon-pencil"></span></a>
                                 <?php
@@ -215,9 +200,9 @@
                     </tr>
                 <?php endforeach ?>
             </tbody>
-
         </table>
     </div>
+    <?php echo anchor('admin/igcse/compute/' . $id, 'Compute Marks', 'class="btn btn-success mt-2 text-center"'); ?>
 
 <?php else : ?>
     <p class='text'><?php echo lang('web_no_elements'); ?></p>
