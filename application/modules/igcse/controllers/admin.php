@@ -13,7 +13,6 @@ class Admin extends Admin_Controller
         }
         $this->load->model('igcse_m');
         $this->load->model('exams/exams_m');
-        
     }
 
     public function index()
@@ -160,7 +159,8 @@ class Admin extends Admin_Controller
     }
 
     //Function to reciord exams
-    function exams($id) {
+    function exams($id)
+    {
         $thread = $this->igcse_m->find($id);
 
         if ($this->input->post()) {
@@ -182,8 +182,7 @@ class Admin extends Admin_Controller
 
             $ok = $this->igcse_m->create_exam($form);
 
-            if ($ok)
-            {
+            if ($ok) {
                 $details = implode(' , ', $this->input->post());
                 $user = $this->ion_auth->get_user();
                 $log = array(
@@ -199,14 +198,11 @@ class Admin extends Admin_Controller
                 $this->ion_auth->create_log($log);
 
                 $this->session->set_flashdata('message', array('type' => 'success', 'text' => lang('web_create_success')));
-            }
-            else
-            {
+            } else {
                 $this->session->set_flashdata('message', array('type' => 'error', 'text' => lang('web_create_failed')));
             }
 
-            redirect('admin/igcse/exams/'.$id);
-            
+            redirect('admin/igcse/exams/' . $id);
         }
 
         $range = range(date('Y') - 50, date('Y'));
@@ -220,15 +216,60 @@ class Admin extends Admin_Controller
     }
 
     //Compute Marks
-    public function compute($id) {
+    public function compute($id)
+    {
         $thread = $this->igcse_m->find($id);
         $exams = $this->igcse_m->get_thread_exams($id);
+        $user = $this->ion_auth->get_user();
 
         if ($this->input->post()) {
-            echo "<pre>";
-                print_r($this->input->post());
-            echo "</pre>";
-            die;
+            $clsgroup = $this->input->post('group');
+            $cls = $this->input->post('class');
+            $gid = $this->input->post('grading');
+
+            $marks = $this->igcse_m->marks_by_group($id, $clsgroup);
+
+            if (count($marks) == 0) {
+                $this->session->set_flashdata('message', array('type' => 'error', 'text' => 'No any marks recorded'));
+            } else {
+                $k = 0;
+                $kk = 0;
+                $totals = $this->generate_totals($id, $marks, $gid);
+
+                //Create Marks for the Student
+                foreach ($totals as $stu => $subject) {
+                    foreach ($subject as $sub => $marko) {
+                        $mdata = array(
+                            'tid' => $id,
+                            'class' => $marko['class'],
+                            'class_group' => $marko['classgrp'],
+                            'cats_score' => $marko['catscore'],
+                            'main_score' => $marko['mainscore'],
+                            'student' => $stu,
+                            'subject' => $sub,
+                            'total' => $marko['total'],
+                            'grade' => $marko['grade'],
+                            'grading' => $gid,
+                            'comment' => $marko['comment'],
+                            'created_on' => time(),
+                            'created_by' => $user->id
+                        );
+
+                        $ok = $this->igcse_m->create_rec('igcse_computed_marks',$mdata);
+
+                        if ($ok) {
+                            $k++;
+                        } else {
+                            $kk++;
+                        }
+                    }
+                }
+
+                
+                $mess = $k.' Marks Computed Successfully. '.$kk.' Mark computations failed.';
+                $this->session->set_flashdata('message', array('type' => 'success', 'text' => $mess));
+                redirect('admin/igcse/exams/' . $id);
+            }
         }
 
         $data['thread'] = $thread;
@@ -238,7 +279,387 @@ class Admin extends Admin_Controller
         $this->template->title('Compute Marks')->build('admin/compute', $data);
     }
 
-    public function record($thid,$exid,$id){
+    //Function rank 
+    public function rank_marks($marks = false) {
+        if ($marks) {
+            $marks = $marks;
+        } else {
+            $marks = $this->igcse_m->get_computed_marks();
+        }
+        
+        $subjects = [];
+        $classes = [];
+
+        foreach ($marks as $key => $mark) {
+            $subjects[] = $mark->subject;
+            $classes[] = $mark->class;
+        }
+
+        $subjects = array_unique($subjects);
+        $classes = array_unique($classes);
+
+        //Overall Positions Ranking
+        $subjectstuscores = [];
+
+        foreach ($subjects as $sub) {
+            $studentmarks = [];
+
+            foreach ($marks as $marko) {
+                if ($marko->subject == $sub) {
+                    $studentmarks[$marko->id] = $marko->total;
+                }
+            }
+
+            $subjectstuscores[$sub] = $studentmarks;
+        }
+
+        $positions = $this->generate_positions($subjectstuscores);
+
+        // echo "<pre>";
+        //     print_r($subjectstuscores);
+        // echo "</pre>";
+
+        //Update Overall Positions
+        foreach ($positions as $sub => $pos) {
+            foreach ($pos as $id => $position) {
+                $rank_data = array(
+                    'ovr_rank' => $position['position'].'/'.count($pos)
+                );
+
+               $done = $this->igcse_m->update_table($id,'igcse_computed_marks',$rank_data);
+            }
+        }
+
+        //Stream positions ranking
+        $classmarks = [];
+        $classstudents = [];
+
+        foreach ($classes as $class) {
+            //Loop through subjects
+            $studentmarks = [];
+
+            foreach ($subjects as $ky => $sub) {
+                $markss = [];
+                foreach ($marks as $key => $marko) {
+                    if ($marko->subject == $sub) {
+                        $markss[$marko->id] = $marko->total;
+                    }
+                }
+
+                $studentmarks[$sub] = $markss;
+            }
+
+            $classmarks[$class] = $studentmarks;
+
+            //Push Class Students
+            $clsstus = [];
+            foreach ($marks as $key => $marko) {
+                if ($marko->class == $class) {
+                    $clsstus[$marko->id] = $marko->student;
+                }
+            }
+
+            $classstudents[$class] = array_unique($clsstus);
+        }
+
+
+        //Loop through classes
+        foreach ($classmarks as $cls => $classmark) {
+            $positions = $this->generate_positions($classmark);
+
+            echo "<pre>";
+                    print_r($classmark);
+            echo "</pre>";
+
+            $count = count($classstudents[$cls]);
+            
+            //Update Overall Positions
+            foreach ($positions as $sub => $pos) {
+                foreach ($pos as $id => $position) {
+                    $rank_data = array(
+                        'stream_rank' => $position['position'].'/'.$count
+                    );
+
+                    
+                    // $done = $this->igcse_m->update_table($id,'igcse_computed_marks',$rank_data);
+                }
+            }
+        }
+
+        die;
+
+    }
+
+    //Function to assign postions
+    function generate_positions($marks) {
+        foreach ($marks as &$subject) {
+            // Sort marks in descending order
+            arsort($subject);
+
+            // Initialize variables
+            $prevMark = null;
+            $position = 0;
+
+            // Assign positions
+            foreach ($subject as $student => &$mark) {
+                if ($mark !== $prevMark) {
+                    $position++;
+                    $prevMark = $mark;
+                }
+                $mark = ['position' => $position, 'mark' => $mark];
+            }
+        }
+
+        return $marks;
+    }
+
+    //Generate Totals for each
+    public function generate_totals($tid, $marks, $gid)
+    {
+        $exids = [];
+        $students = [];
+        $subjects = [];
+
+        foreach ($marks as $key => $mk) {
+            $students[] = $mk->student;
+            $subjects[] = $mk->subject;
+        }
+
+        $filteredstudents = array_unique($students);
+        $filteredsubs = array_unique($subjects);
+
+        $stusubs = [];
+
+        foreach ($filteredstudents as $keey => $stu) {
+            $sbs = [];
+
+            foreach ($filteredsubs as $sub) {
+                $sbs[] = $sub;
+            }
+
+            $stusubs[$stu] = $sbs;
+        }
+
+        //Now populate marks 
+        $studentmks = [];
+
+        foreach ($stusubs as $ky => $stusub) {
+            $subjects = $stusub;
+            $submarks = [];
+
+            foreach ($marks as $yk => $mark) {
+                //Loop through Subjects
+                foreach ($subjects as $subkey => $sub) {
+                    if ($sub == $mark->subject && $ky == $mark->student) {
+                        $exam = $this->igcse_m->find_igcse_exam($mark->exams_id);
+
+                        $submarks[$sub][] = [
+                            'class' => $mark->class,
+                            'classgrp' => $mark->class_group,
+                            'exam' => $mark->exams_id,
+                            'type' => $exam->type,
+                            'mark' => $mark->marks,
+                            'outof' => $mark->out_of
+                        ];
+                    }
+                }
+            }
+
+            $studentmks[$ky] = $submarks;
+        }
+
+        // echo "<pre>";
+        //     print_r($studentmks);
+        // echo "</pre>";
+        // die;
+
+        $combinedmarks = $this->combine_marks($tid, $studentmks, $gid);
+
+        return $combinedmarks;
+    }
+
+    //Generate Subject scores
+
+
+    //Combine the marks
+    public function combine_marks($tid, $studentmks, $gid)
+    {
+        $exthread = $this->igcse_m->find($tid);
+        $catsweight = $exthread->cats_weight;
+        $mainweight = $exthread->main_weight;
+
+        //Check 
+        $totalscores = [];
+        $substuscores = [];
+        foreach ($studentmks as $key => $sub) {
+            $subjects = $sub;
+
+            $subscores = [];
+            foreach ($subjects as $ky => $marks) {
+                $marks = $marks;
+                $cats = [];
+                $mains = [];
+
+                foreach ($marks as $yk => $mark) {
+                    if ($mark['type'] == 2) {
+                        $cats[] = [
+                            'score' => $mark['mark'],
+                            'outof' => $mark['outof']
+                        ];
+                    } elseif ($mark['type'] == 1) {
+                        $mains[] = [
+                            'score' => $mark['mark'],
+                            'outof' => $mark['outof']
+                        ];
+                    }
+                }
+
+                //Get the Convertions
+                $totalRatio = 0;
+                $totalOutOf = 0;
+
+                // Iterate through each element in the array
+                foreach ($cats as $cat) {
+                    $totalRatio += $cat['score'];
+                    $totalOutOf += $cat['outof'];
+                }
+
+                $totalCatRatio = $totalRatio / $totalOutOf;
+
+                if ($totalCatRatio > $catsweight) {
+                    $totalCatRatio = $catsweight;
+                }
+
+                $catstotal = round($totalCatRatio * $catsweight);
+                $actualcattotal = $catstotal > $catsweight ? $catsweight : $catstotal;
+
+                //Work on Compressing the Mains
+                $totalmainRatio = 0;
+                $totalmainOutof = 0;
+
+                foreach ($mains as $main) {
+                    $totalmainRatio += $main['score'];
+                    $totalmainOutof += $main['outof'];
+                }
+
+                $totalMainRatio = $totalmainRatio / $totalmainOutof;
+
+                if ($totalMainRatio > $mainweight) {
+                    $totalMainRatio = $mainweight;
+                }
+                // Multiply the total ratio by 30
+                $maintotal = round($totalMainRatio * $mainweight);
+                $actualmaintotal = $maintotal > $mainweight ? $mainweight : $maintotal;
+
+                //Get the total Score
+                $totalscore = $actualcattotal + $actualmaintotal;
+
+                $actualtotal = $totalscore > $catsweight + $mainweight ? $catsweight + $mainweight : $totalscore;
+
+                //Match Score with the grades
+                $grading = $this->igcse_m->retrieve_grading($gid);
+                foreach ($grading as $gy => $grad) {
+                    if ($actualtotal >= $grad->minimum_marks && $actualtotal <= $grad->maximum_marks) {
+                        $grade = $grad->grade;
+                        $comment = $grad->comment;
+                    }
+                }
+
+                $subscores[$ky] = [
+                    'class' => $mark['class'],
+                    'classgrp' => $mark['classgrp'],
+                    'catscore' => $actualcattotal,
+                    'mainscore' => $actualmaintotal,
+                    'total' => $actualtotal,
+                    'grade' => $grade,
+                    'comment' => $comment
+                ];
+            }
+
+            $totalscores[$key] = $subscores;
+        }
+
+        // $gradedscores = $this->generate_ranks($totalscores);
+
+        return $totalscores;
+    }
+
+    //Generate Ranks
+    public function generate_ranks($totalscores)
+    {
+        $overall_positions = [];
+        $stream_positions = [];
+
+        // Loop through the main array to calculate positions
+        foreach ($totalscores as $student_id => $scores) {
+            // Extract scores for sorting
+            $scoresToSort = [];
+            foreach ($scores as $subject_id => $score_details) {
+                $scoresToSort[$subject_id] = $score_details['total'];
+            }
+
+            // Sort the scores for the current student
+            arsort($scoresToSort);
+
+            // Calculate positions for the stream
+            $stream_positions[$student_id] = $this->calculatePositions($scores, 'total');
+
+            // Merge the scores for the current student with overall scores
+            $overall_positions = array_merge($overall_positions, $scoresToSort);
+        }
+
+        // Calculate overall positions
+        $overall_positions = $this->calculatePositions($overall_positions, 'total');
+
+        // Loop through the main array to add positions
+        foreach ($totalscores as $student_id => &$scores) {
+            // Loop through scores for each student
+            foreach ($scores as $subject_id => &$score_details) {
+                // Add new keys for stream and overall positions
+                $score_details['ovr_pos'] = $overall_positions[$score_details['total']];
+                $score_details['str_pos'] = $stream_positions[$student_id][$score_details['total']];
+            }
+        }
+
+        echo "<pre>";
+        print_r($totalscores);
+        echo "</pre>";
+
+        die;
+    }
+
+
+    //Function to generate rank
+    function calculatePositions($array, $key)
+    {
+        uasort($array, function ($a, $b) use ($key) {
+            return $b[$key] <=> $a[$key];
+        });
+    
+        // Initialize variables
+        $position = 0;
+        $prev_value = null;
+        $positions = [];
+    
+        // Iterate through the sorted array
+        foreach ($array as $value) {
+            // Increment position if the current value is different from the previous value
+            if ($value[$key] !== $prev_value) {
+                $position++;
+            }
+    
+            // Set the position for the current value
+            $positions[$value[$key]] = $position;
+    
+            // Update the previous value
+            $prev_value = $value[$key];
+        }
+    
+        return $positions;
+    }
+
+    public function record($thid, $exid, $id)
+    {
         $students = [];
         $sb = 0;
         //push class name to next view
@@ -249,8 +670,8 @@ class Admin extends Admin_Controller
         $stream = $tar->stream;
         $heading = 'Exam Marks For: <span style="color:blue">' . $class_name[$class_id] . '</span>';
         $exam_type = $this->exams_m->get_exams_by_tid($thid);
-    
-        
+
+
         $subjects = $this->exams_m->get_subjects($id, $exam->term);
 
         // echo "<pre>";
@@ -270,7 +691,7 @@ class Admin extends Admin_Controller
                 $sel = 1;
             }
 
-            $data['checkmarks'] = $this->igcse_m->check_marks($thid,$exid,$sb);
+            $data['checkmarks'] = $this->igcse_m->check_marks($thid, $exid, $sb);
             $students = $this->exams_m->get_students($class_id, $stream);
         }
 
@@ -312,7 +733,7 @@ class Admin extends Admin_Controller
                 $units = $this->input->post('units');
                 $k = 0;
                 $kk = 0;
-                
+
                 // $this->exams_m->set_grading($exid, $id, $sb, $gd_id, $user->id);
                 $perf_list = $this->_prep_marks($sb, $exid, $marks, $units);
 
@@ -337,31 +758,29 @@ class Admin extends Admin_Controller
                     ];
 
                     //Check if marks Exists to Update
-                    $ckmarks = $this->igcse_m->check_student_marks($thid,$exid,$sb,$dat->student);
+                    $ckmarks = $this->igcse_m->check_student_marks($thid, $exid, $sb, $dat->student);
 
                     if ($ckmarks) {
                         $k++;
-                        $done = $this->igcse_m->update_marks_attributes($ckmarks->id,['marks' => $mkcon,'modified_on' => time(),'modified_by' => $user->id]);
+                        $done = $this->igcse_m->update_marks_attributes($ckmarks->id, ['marks' => $mkcon, 'modified_on' => time(), 'modified_by' => $user->id]);
                     } else {
                         $kk++;
                         $ok = $this->exams_m->insert_marks1($fvalues);
                     }
-                    
-
-                     }
+                }
 
                 // if ($ok) {
-                    // $this->acl->audit($ok, implode(' , ', $svalues));
-                    $mess = $kk.' Marks Inserted Successfully. '.$k.'Marks Updated Successfully';
+                // $this->acl->audit($ok, implode(' , ', $svalues));
+                $mess = $kk . ' Marks Inserted Successfully. ' . $k . 'Marks Updated Successfully';
 
-                    $this->session->set_flashdata('message', array('type' => 'success', 'text' => $mess));
+                $this->session->set_flashdata('message', array('type' => 'success', 'text' => $mess));
                 // } else {
                 //     $this->session->set_flashdata('message', array('type' => 'error', 'text' => lang('web_create_failed')));
                 // }
             } else {
                 $this->session->set_flashdata('message', array('type' => 'error', 'text' => 'Subject Not Specified'));
             }
-            redirect('admin/igcse/exams/'.$thid);
+            redirect('admin/igcse/exams/' . $thid);
         } else {
             $get = new StdClass();
             foreach ($this->rec_validation() as $field) {
@@ -377,7 +796,6 @@ class Admin extends Admin_Controller
 
             $this->template->title('Record Exam Marks')->build('admin/records', $data);
         }
-
     }
     function _prep_marks($subject, $exm_mgmt_id, $marks = [], $units = [])
     {

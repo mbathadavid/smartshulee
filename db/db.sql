@@ -86,3 +86,42 @@ ALTER TABLE `igcse_marks_list`
 ALTER TABLE `igcse_marks_list`
 	ADD COLUMN `class` INT(11) NULL DEFAULT NULL AFTER `tid`,
 	ADD COLUMN `class_group` INT(11) NULL DEFAULT NULL AFTER `class`;
+
+CREATE TABLE IF NOT EXISTS `igcse_computed_marks` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(256) NOT NULL DEFAULT '',
+  `created_by` int(11) DEFAULT NULL,
+  `modified_by` int(11) DEFAULT NULL,
+  `created_on` int(11) DEFAULT NULL,
+  `modified_on` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `igcse_computed_marks`
+	CHANGE COLUMN `name` `tid` INT NULL DEFAULT NULL COLLATE 'utf8_general_ci' AFTER `id`,
+	ADD COLUMN `cats_score` INT NULL DEFAULT NULL AFTER `tid`,
+	ADD COLUMN `main_score` INT NULL DEFAULT NULL AFTER `cats_score`,
+	ADD COLUMN `student` INT NULL DEFAULT NULL AFTER `main_score`,
+	ADD COLUMN `subject` INT NULL DEFAULT NULL AFTER `student`,
+	ADD COLUMN `total` INT NULL DEFAULT NULL AFTER `subject`,
+	ADD COLUMN `grade` INT NULL DEFAULT NULL AFTER `total`,
+	ADD COLUMN `stream_rank` INT NULL DEFAULT NULL AFTER `grade`,
+	ADD COLUMN `ovr_rank` INT NULL DEFAULT NULL AFTER `stream_rank`,
+	ADD COLUMN `grading` INT NULL DEFAULT NULL AFTER `ovr_rank`;
+
+ALTER TABLE `igcse_computed_marks`
+	ADD COLUMN `class` INT(11) NULL DEFAULT NULL AFTER `tid`,
+	ADD COLUMN `class_group` INT(11) NULL DEFAULT NULL AFTER `class`;
+
+ALTER TABLE `igcse_computed_marks`
+	ADD COLUMN `dev` TEXT NULL AFTER `grading`;
+
+ALTER TABLE `igcse_computed_marks`
+	ADD COLUMN `comment` TEXT NULL AFTER `grade`;
+
+ALTER TABLE `igcse_computed_marks`
+	CHANGE COLUMN `grade` `grade` TEXT NULL AFTER `total`;
+
+ALTER TABLE `igcse_computed_marks`
+	CHANGE COLUMN `stream_rank` `stream_rank` TEXT NULL AFTER `comment`,
+	CHANGE COLUMN `ovr_rank` `ovr_rank` TEXT NULL AFTER `stream_rank`;
