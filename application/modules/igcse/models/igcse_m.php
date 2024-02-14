@@ -111,7 +111,81 @@ function populate($table,$option_val,$option_text)
 	modified_on INT(11) 
 	) ENGINE=InnoDB  DEFAULT CHARSET=utf8; ");
       }
-      
+
+
+    function get_teachers()
+    {
+        //$this->db->select('teachers.id as id ,' . $this->dxa('first_name') . ', ' . $this->dxa('last_name'), FALSE);
+        $this->db->select('teachers.id as id ,' . $this->dx('teachers.first_name') . ' as first_name, ' . $this->dx('teachers.last_name') . ' as last_name', FALSE);
+        return $this->db->where($this->dx('teachers.status') . ' != 0', NULL, FALSE)
+            ->where('users.id', $this->user->id) // Select where user_id is equal to $this->user->id
+            ->join('teachers', 'users.id=' . $this->dx('user_id'))
+            ->limit(1) // Limit the result to only one row
+            ->get('users')
+            ->row(); // Return only one row
+    }
+
+    function list_teachers()
+    {
+        $teacher = $this->get_teachers(); 
+        if ($teacher) {
+            return array($teacher->id => $teacher->first_name . ' ' . $teacher->last_name);
+        } else {
+           return array();
+        }
+    }
+
+    function fetch_subjects_by_class($selectedClassId)
+    {
+       
+        $query = $this->db->where('class', $selectedClassId)
+            ->get('subjects_assign');
+        return $query->result();
+    }
+
+
+    function get_class_with_teacher()
+    {
+        
+        $teacher = $this->get_teachers();
+
+        if ($teacher) {
+           
+            return $this->db->select('class')
+                ->where('teacher', $teacher->id)
+                ->group_by('class') // Group by class to avoid duplicate classes
+                ->get('subjects_assign')
+                ->result();
+        } else {
+            
+            return array();
+        }
+    }
+
+    function get_students($class)
+    {
+        $this->select_all_key('admission');
+        $this->db->where($this->dx('class') . " ='" . $class . "'", NULL, FALSE);
+        $this->db->where($this->dx('status') . " ='" . 1 . "'", NULL, FALSE);
+        return $this->db->get('admission')->result();
+    }
+
+    public function get_results($student, $subject)
+    {
+        $this->db->select('*');
+        $this->db->from('igcse_marks_list');
+        $this->db->where_in('student', $student);
+        $this->db->where('subject', $subject);
+        $query = $this->db->get();
+        return $query->result(); // Return the results
+    }
+
+    public function save_marks($data)
+    {
+        // Insert new marks
+        $this->db->insert('igcse_marks_list', $data);
+    }
+
     function paginate_all($limit, $page)
     {
             $offset = $limit * ( $page - 1) ;

@@ -1,10 +1,12 @@
 <?php
-
+$this->load->model('igcse/igcse_m');
 $subjects = $this->exams_m->get_subjects(7, 1);
-
-echo "<pre>";
-print_r($subjects);
-echo "</pre>";
+$teachers = $this->igcse_m->list_teachers();
+$classes_with_teachers = $this->igcse_m->get_class_with_teacher();
+$subs = $this->igcse_m->populate('subjects', 'id', 'name');
+// echo "<pre>";
+// print_r(students);
+// echo "</pre>";
 ?>
 
 <div class="portlet mt-2">
@@ -27,11 +29,20 @@ echo "</pre>";
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-12 col-sm-12">
-                        <?php echo form_open(current_url()) ?>
+                        <?php 
+                        $subject = $this->input->post('subject');
+                        echo form_open(base_url('trs/addmarks/' . $subject)); ?>
                         <div class="col-sm-3">
                             <label>Class</label>
                             <?php
-                            echo form_dropdown('class', ['' => ''] + $this->streams, $this->input->post('class'), 'class="select" required')
+                            // Initial options for the dropdown
+                            $options = ['' => ''];
+                            foreach ($classes_with_teachers as $class) {
+                                if (isset($this->streams[$class->class])) {
+                                    $options[$class->class] = $this->streams[$class->class];
+                                }
+                            }
+                            echo form_dropdown('class', $options, $this->input->post('class'), 'class="select" id="class-dropdown" required');
                             ?>
                         </div>
 
@@ -50,16 +61,19 @@ echo "</pre>";
 
                         <div class="col-sm-3">
                             <label>Exam</label>
-                            <select name="exam" id="exam-dropdown" class="select" required>
-                                <option value="">Select an exam</option>
-                            </select>
+                            <?php
+                            $options = array('' => '');
+                            echo form_dropdown('exam', $options, $this->input->post('exam'), 'class="select" id="exam-dropdown" required');
+                            ?>
                         </div>
 
                         <div class="col-sm-3">
                             <label>Subject</label>
-                            <select name="exam" id="exam-dropdown" class="select" required>
-                                <option value="">Select an exam</option>
-                            </select>
+                            <?php
+                            $options = array('' => '');
+
+                            echo form_dropdown('subject', $options, $this->input->post('subject'), 'class="select" id="sub-dropdown" required');
+                            ?>
                         </div>
 
 
@@ -75,10 +89,6 @@ echo "</pre>";
         </div>
     </div>
 
-    <div id="step2">
-        <!-- Her -->
-    </div>
-
 </div>
 <script>
     $(document).ready(function() {
@@ -86,6 +96,7 @@ echo "</pre>";
             var selectedThreadId = $(this).val();
 
             var url = `<?php echo base_url("trs/fetch_exams/") ?>/${selectedThreadId}`;
+
             console.log(url);
             // console.log('Selected Thread ID:', selectedThreadId);
             $.ajax({
@@ -94,6 +105,17 @@ echo "</pre>";
                 success: function(response) {
                     populateExamDropdown(response);
 
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
+            });
+
+            $.ajax({
+                url: url2,
+                type: 'GET',
+                success: function(response) {
+                    // Process response for the second data retrieval
                 },
                 error: function(xhr, status, error) {
                     console.error(error);
@@ -113,112 +135,57 @@ echo "</pre>";
 </script>
 
 <script>
-    $("#assess_initial").on('submit', (function(e) {
-        e.preventDefault();
-        $.ajax({
-            url: "<?php echo base_url('trs/cbc_exams/assess_init') ?>",
-            type: "POST",
-            contentType: false,
-            cache: false,
-            processData: false,
+    $(document).ready(function() {
+        // Attach change event listener to the class dropdown
+        $('#class-dropdown').change(function() {
+            var selectedClassId = $(this).val();
+            var url2 = `<?php echo base_url("trs/fetch_data/") ?>/${selectedClassId}`;
 
-            data: new FormData(this),
+            $.ajax({
+                url: url2,
+                type: 'GET',
+                success: function(response) {
+                    displaySubjects(response);
 
-            success: function(data) {
-                var res = $.parseJSON(data);
-
-                $('.select2-container').remove();
-                $(".xsel").select2({
-                    'placeholder': 'Please Select',
-                    'width': '100%'
-                });
-                $('#step1').hide('slow');
-                var html = ``;
-                if (res.subjects.length === 0) {
-                    html += `<div class="alert alert-danger">No subjects assigned for the selected class</div><br><a onclick="go_back()">Select a diffrent class</a>`;
-                } else {
-                    html += `
-                    <?php echo form_open(base_url('trs/cbc_exams/post_marks/')) ?>
-
-                   
-                <div class="panel panel-primary">
-                    <div class="panel-heading"><strong>` + res.class_name + ` Assessment</strong> <button class="btn btn-sm btn-danger" onclick="go_back()">Back</button></div>
-                    <div class="panel-body">
-                        
-                     
- <input type="hidden" value="` + res.post.year + `" name="year">
-                    <input type="hidden" value="` + res.post.term + `" name="term">
-                    <input type="hidden" value="` + res.post.class + `" name="class">
-                    <input type="hidden" value="` + res.post.exam + `" name="exam">
-                         
-                           <div class="col-sm-3">
-                            <label>Subject</label><br>
-                            <select class="select form-control" name="subject">
-                                <option value="">Please select</option>`;
-                    $.each(res.subjects, function(key, subj) {
-                        html += `<option value="` + key + `">` + subj + `</option>`;
-                    })
-
-                    html += `
-                            </select>
-                        </div><hr><br>`;
-
-                    html += `
-                <br>
-                    <table class="table table-striped table-bordered"   >
-                        <thead>
-                            <tr>
-                                <th>Adm No</th>
-                                <th>Student</th>
-                                <th>Marks</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                    $.each(res.students, function(key, student) {
-                        html += `<tr>   
-                            <td>` + student.admission_number + `</td>
-                            <td>` + student.name + `</td>
-                            <td><input type="number" name="marks[` + student.student + `]" max="100" min="0" class="form-control"></td>
-                    </tr>`;
-                    })
-
-                    html += `
-                    </tbody></table>
-
-                    <br>
-                    <hr>
-                    <div style="float:right">
-                    <button class="btn btn-primary" onclick="return confirm('Are you sure to save?')">Submit</button>
-                    </div>
-                `;
-
-
-                    html += ` </div>
-                </div>
-                <form>
-                `;
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
                 }
+            });
+        });
+    });
 
 
-                $('#step2').html(html);
+    function displaySubjects(response) {
+        var subjectsDropdown = $('#sub-dropdown');
+
+        subjectsDropdown.empty();
+
+        subjectsDropdown.append($('<option>').text('Select a subject').attr('value', ''));
+
+        var dataArray = JSON.parse(response);
+
+        dataArray.forEach(function(item) {
+            // Check if the item has a 'subject' property
+            if (item.subject) {
+                subjectsDropdown.append($('<option>').text(item.subject).attr('value', item.value));
             }
-        })
-    }))
-
-    function go_back() {
-        $('#step2').hide('slow');
-        $('#step1').show('slow');
-        location.reload();
+        });
     }
+</script>
 
-    function validate_week() {
-        var week = $('#week').val();
+<script>
+    $(document).ready(function() {
+        $('#myForm').submit(function(event) {
+            event.preventDefault(); // Prevent form submission and page reload
 
-        if (week > 56) {
-            notify('Weeks', 'Weeks cannot exceed 56!!!');
-            $('#week').val('');
-        }
-    }
+            // Your form processing code here
+
+            // Show the table
+            $('#dataTable').show();
+
+            // Optionally, you can populate the table here if needed
+            // fetchDataAndPopulateTable();
+        });
+    });
 </script>

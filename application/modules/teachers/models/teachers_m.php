@@ -324,6 +324,7 @@ class Teachers_m extends MY_Model
         return $output;
     }
 
+    
     function get_teachers()
     {
         //$this->db->select('teachers.id as id ,' . $this->dxa('first_name') . ', ' . $this->dxa('last_name'), FALSE);
