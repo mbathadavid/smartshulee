@@ -20,7 +20,7 @@ if ($rank)
     $s3 = $rank == 3 ? ' checked="checked" ' : '';
 }
 ?>
-<div class="toolbar">
+<div class="toolbar"
     <div class="row row-fluid">
         <div class="col-md-12 span12">
             <?php echo form_open(current_url()); ?>

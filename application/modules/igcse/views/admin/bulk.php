@@ -56,11 +56,17 @@ foreach ($this->classlist as $ssid => $s)
         </div>
     </div>
 </div>
+
 <?php
-echo "<pre>";
-print_r($thread);
-echo "</pre>";
+    if (isset($results)) {
+       
+        echo "<pre>";
+            print_r($results);
+            print_r($resultpositions);
+        echo "</pre>";
 ?>
+
+<?php } ?>
 <script>
     $(document).ready(
             function ()
