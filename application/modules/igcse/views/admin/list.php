@@ -42,18 +42,9 @@
 						<td><?php echo $p->cats_weight ?></td>
 						<td><?php echo $p->main_weight ?></td>
 						<td><?php echo $p->description ?></td>
-						<td width='30'>
-							<!-- <div class='btn-group'>
-								<button class='btn dropdown-toggle' data-toggle='dropdown'>Action <i class='glyphicon glyphicon-caret-down'></i></button>
-								<ul class='dropdown-menu pull-right'>
-									<li><a href='<?php echo site_url('admin/igcse/edit/' . $p->id . '/' . $page); ?>'><i class='glyphicon glyphicon-eye-open'></i> View</a></li>
-									<li><a href='<?php echo site_url('admin/igcse/edit/' . $p->id . '/' . $page); ?>'><i class='glyphicon glyphicon-edit'></i> Edit</a></li>
-
-									<li><a onClick="return confirm('<?php echo lang('web_confirm_delete') ?>')" href='<?php echo site_url('admin/igcse/delete/' . $p->id . '/' . $page); ?>'><i class='glyphicon glyphicon-trash'></i> Trash</a></li>
-								</ul>
-							</div> -->
-
+						<td width=''>
 							<?php echo anchor('admin/igcse/exams/' . $p->id, 'Thread Exams', 'class="btn btn-success"'); ?>  
+							<?php echo anchor('admin/igcse/bulk/' . $p->id, 'Report Forms', 'class="btn btn-success"'); ?>
                                     <div class="btn-group">
                                         <a  class="btn btn-primary " href="<?php echo site_url('admin/igcse/edit/' . $p->id . '/' . $page); ?>"><span class="glyphicon glyphicon-pencil"></span></a>
                                         <?php

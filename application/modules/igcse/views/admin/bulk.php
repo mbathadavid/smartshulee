@@ -1,6 +1,6 @@
 <div class="head">
     <div class="icon"></div>
-    <h2><?php echo $thread->title ?></h2>
+    <h2><?php echo $thread->title.' - (Term '.$thread->term.' '.$thread->year.')' ?></h2>
     <div class="right"></div>    					
 </div>
 <?php
@@ -24,10 +24,10 @@ foreach ($this->classlist as $ssid => $s)
     <div class="row row-fluid">
         <div class="col-md-12 span12">
             <?php echo form_open(current_url()); ?>
-            <div class="row">
+            <div class="row mb-3">
                 <div class="col-lg-3 col-md-3">
                     Class  
-                    <?php echo form_dropdown('group', array("" => " Select ") + $this->classes, $this->input->post('group'), 'class ="tsel" required'); ?>
+                    <?php echo form_dropdown('group', array("" => " Select ") + $this->classes, $this->input->post('group'), 'class ="tsel"'); ?>
                 </div>
                 <div class="col-lg-1 col-md-1">
                     OR
@@ -37,19 +37,17 @@ foreach ($this->classlist as $ssid => $s)
                     <?php echo form_dropdown('class', array('' => 'Select') + $sslist, $this->input->post('class'), 'class ="tsel" '); ?>
                 </div>
                 <div class="col-lg-3 col-md-3">
-                    Grading
+                    Compare With (For Deviation)
                     <?php 
                         $gradings = $this->igcse_m->populate('grading_system','id','title');
-                        echo form_dropdown('grading', array('' => 'Select') + $gradings, $this->input->post('grading'), 'class ="tsel" required'); 
+                        echo form_dropdown('thread', array('' => 'Select') + $threads, $this->input->post('thread'), 'class ="tsel"'); 
                     ?>
                 </div>
                 <div class="col-lg-2 col-md-2">
-                    <h6>CATS - <b>(<?php echo count($this->igcse_m->cats($id)) ?>) = <?php echo $thread->cats_weight ?>% Weight</b></h6>
-                    <h6>Main Exam - <b>(<?php echo count($this->igcse_m->mains($id)) ?>) = <?php echo $thread->main_weight ?>% Weight</b></h6>
+                    View <br>
+                    <button class="btn btn-primary"  type="submit">View Results</button>
                 </div>
             </div>
-            
-            <h6 class="text-center"><button class="btn btn-primary"  type="submit">Compute Marks</button></h6>
             
             <div class="pull-right">
                 <a href="" onClick="window.print(); return false" class="btn btn-warning"><i class="icos-printer"></i> Print </a>
@@ -59,9 +57,9 @@ foreach ($this->classlist as $ssid => $s)
     </div>
 </div>
 <?php
-// echo "<pre>";
-// print_r($thread);
-// echo "</pre>";
+echo "<pre>";
+print_r($thread);
+echo "</pre>";
 ?>
 <script>
     $(document).ready(

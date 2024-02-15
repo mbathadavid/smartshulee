@@ -125,3 +125,25 @@ ALTER TABLE `igcse_computed_marks`
 ALTER TABLE `igcse_computed_marks`
 	CHANGE COLUMN `stream_rank` `stream_rank` TEXT NULL AFTER `comment`,
 	CHANGE COLUMN `ovr_rank` `ovr_rank` TEXT NULL AFTER `stream_rank`;
+
+CREATE TABLE IF NOT EXISTS `igcse_final_results` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(256) NOT NULL DEFAULT '',
+  `created_by` int(11) DEFAULT NULL,
+  `modified_by` int(11) DEFAULT NULL,
+  `created_on` int(11) DEFAULT NULL,
+  `modified_on` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `igcse_final_results`
+	CHANGE COLUMN `name` `tid` INT NULL DEFAULT NULL COLLATE 'utf8_general_ci' AFTER `id`,
+	ADD COLUMN `class_group` INT NULL DEFAULT NULL AFTER `tid`,
+	ADD COLUMN `class` INT NULL DEFAULT NULL AFTER `class_group`,
+	ADD COLUMN `total` INT NULL DEFAULT NULL AFTER `class`,
+	ADD COLUMN `mean_mark` INT NULL DEFAULT NULL AFTER `total`,
+	ADD COLUMN `mean_grade` TEXT NULL AFTER `mean_mark`,
+	ADD COLUMN `str_pos` INT NULL DEFAULT NULL AFTER `mean_grade`,
+	ADD COLUMN `ovr_pos` INT NULL DEFAULT NULL AFTER `str_pos`,
+	ADD COLUMN `outof` INT NULL DEFAULT NULL AFTER `ovr_pos`,
+	ADD COLUMN `student` INT NULL DEFAULT NULL AFTER `outof`;
