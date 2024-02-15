@@ -13,8 +13,8 @@
               <div class="col-md-6 logo">
                 <h1><img src="<?php echo base_url('uploads/files/' . $settings->document); ?>" width="80" height="80" /></h1>
               </div>
-              <div class="col-md-6 mt=">
-                <h5 class="rtl-text text-center">JUJA prep secondary<?php echo ucwords($settings->school); ?></h5>
+              <div class="col-md-6">
+                <h5 class="blue-text text-center">JUJA prep secondary<?php echo ucwords($settings->school); ?></h5>
               </div>
             </div>
           </div>
@@ -30,9 +30,10 @@
 </div>
 
 <style>
-  .rtl-text {
-    padding-right: 0px;
-    
+  .blue-text {
+    color: blue;
+    font-size: 20px;
+   
   }
 
   @media print {
