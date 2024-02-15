@@ -42,8 +42,25 @@ class Igcse_m extends MY_Model{
      }
 
      //Get marks for ranking 
-     function get_computed_marks() {
+     function get_computed_marks($classgrp = false,$tid = false) {
+        if ($classgrp) {
+            $this->db->where('class_group', $classgrp);
+        }
+
+        if ($tid) {
+            $this->db->where('tid', $tid);
+        }
+
         return $this->db->get('igcse_computed_marks')->result();
+     }
+
+     //Check whetehr marks Inserted
+     function check_results($tid,$stu) {
+        return $this->db
+                    ->where(array('tid' => $tid))
+                    ->where(array('student' => $stu))
+                    ->get('igcse_final_results')
+                    ->row();
      }
 
      //Check whether there are previously entered marks for that subject
@@ -67,6 +84,16 @@ class Igcse_m extends MY_Model{
                 ->row();
      }
 
+     //Function to check marks for student
+     function check_marks_availability($tid,$sub,$stu) {
+        return $this->db
+                ->where(array('tid' => $tid))
+                ->where(array('subject' => $sub))
+                ->where(array('student' => $stu))
+                ->get('igcse_computed_marks')
+                ->row();
+     }
+
      //Get Exams
      function get_thread_exams($tid) {
         return $this->db->where(array('tid' => $tid))->get('igcse_exams')->result();
@@ -86,6 +113,86 @@ class Igcse_m extends MY_Model{
      //Get Cats Count 
      function cats($tid) {
         return $this->db->where(array('tid' => $tid))->where('type',2)->get('igcse_exams')->result();
+     }
+
+     //Function to get Marks
+     function get_students_by_group($group = false) {
+        $streams = $this->get_streams($group);
+
+        $stus = [];
+
+        foreach ($streams as $class) {
+            $this->select_all_key('admission');
+            $this->db->where($this->dx('class') . " ='" . $class . "'", NULL, FALSE);
+            $list = $this->db->get('admission')->result();
+
+            $studes = [];
+
+            foreach ($list as $key => $l) {
+                $studes[] = $l->id;
+            }
+
+            $stus[$class] = $studes;
+        }
+
+        $result = [];
+
+        foreach ($stus as $students) {
+            $result = array_merge($result, $students);
+        }
+
+        return $result;        
+     }
+
+     function get_students_by_stream($class = false) {
+        $this->select_all_key('admission');
+        $this->db->where($this->dx('class') . " ='" . $class . "'", NULL, FALSE);
+        $list = $this->db->get('admission')->result();
+
+        $stus = [];
+
+        foreach ($list as $key => $l) {
+            $stus[] = $l->id;
+        }
+
+        return $stus;
+     }
+
+     //Get streams 
+     function get_streams($group) {
+        $list = $this->db->where('class', $group)->get('classes')->result();
+
+        $strlist = [];
+
+        foreach ($list as $key => $l) {
+            $strlist[] = $l->id;
+        }
+
+        return $strlist;
+     }
+
+     //Prepare Exasms
+     function list_exams($id) {
+        $list = $this->db->where('id !=', $id)->get('igcse')->result();
+
+        $exams = [];
+
+        foreach ($list as $key => $l) {
+            $exams[$l->id] = $l->title.' ( Term '.$l->term.' '.$l->year.')';
+        }
+
+        return $exams;
+     }
+
+
+     //Get final results by students 
+     function results($tid,$students = array()) {
+        return $this->db->where(array('tid' => $tid))->where_in('student',$students)->order_by('total','DESC')->get('igcse_final_results')->result();
+     }
+
+     //Get computed marks
+     function get_student_computed_marks($tid,$students = array()) {
+        return $this->db->where(array('tid' => $tid))->where_in('student',$students)->get('igcse_computed_marks')->result();
      }
 
      function mains($tid) {

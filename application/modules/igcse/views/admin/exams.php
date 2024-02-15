@@ -187,7 +187,7 @@
                                     ?>
                                 </ul>
                             </div>
-                            <?php echo anchor('admin/igcse/bulk/' . $p->id, 'Report Forms', 'class="btn btn-success"'); ?>
+                           
                             <div class="btn-group">
                                 <a class="btn btn-primary " href=""><span class="glyphicon glyphicon-pencil"></span></a>
                                 <?php
@@ -202,7 +202,7 @@
             </tbody>
         </table>
     </div>
-    <?php echo anchor('admin/igcse/compute/' . $id, 'Compute Marks', 'class="btn btn-success mt-2 text-center"'); ?>
+    <h6 class="text-center"><?php echo anchor('admin/igcse/compute/' . $id, 'Compute Marks', 'class="btn btn-success mt-2 text-center"'); ?></h6>
 
 <?php else : ?>
     <p class='text'><?php echo lang('web_no_elements'); ?></p>
