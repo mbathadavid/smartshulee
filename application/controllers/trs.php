@@ -1108,10 +1108,7 @@ class Trs extends Trs_Controller
         $data['links'] = $this->pagination->create_links();
         // $students = $this->igcse_m->get_students(7);
 
-        $class = $this->input->post('class');
-    
-
-
+       
         if ($this->input->post()) {
 
             
@@ -1122,13 +1119,7 @@ class Trs extends Trs_Controller
 
             // $addmarks = $this->igcse_m->addmarks();
             $students = $this->igcse_m->get_students($class);
-
-            echo"<pre>";
-            print_r($students);
-            echo "<pre>";
-
-
-           
+          
             
         }
         
@@ -1140,6 +1131,36 @@ class Trs extends Trs_Controller
         $this->template->title('Marks')->build('trs/exam/record', $data);
     }
 
+    public function view()
+    {
+        $config = $this->_exam_paginate_options();
+        $this->pagination->initialize($config);
+        $page = ($this->uri->segment(4)) ? $this->uri->segment(4) : 1;
+        $data['exams'] = $this->exams_m->paginate_all($config['per_page'], $page);
+
+        if ($this->input->post()) {
+
+
+            $class = $this->input->post('class');
+            $subject = $this->input->post('subject');
+            
+
+            $data['class'] = $this->input->post('class');
+            $data['subject'] = $this->input->post('subject');
+
+            $data['marks'] = $this->igcse_m->get_marks_trs($class, $subject);
+            
+        }
+
+
+
+        $data['page'] = $page;
+        $data['per'] = $config['per_page'];
+        $data['classes'] = $this->trs_m->list_my_classes();
+
+        $this->template->title('Marks')->build('trs/exam/view', $data);
+    }
+
     public function addmarks()
     {
         $config = $this->_exam_paginate_options();
@@ -1149,6 +1170,7 @@ class Trs extends Trs_Controller
         $data['thread'] = (object) $this->exams_m->get_exams();
         //create pagination links
         $data['links'] = $this->pagination->create_links();
+        $data['grading'] = $this->exams_m->get_grading_system();
        
 
         if ($this->input->post()) {
@@ -1160,8 +1182,14 @@ class Trs extends Trs_Controller
             $data['thread'] = $thread;
             $data['exam'] = $exam;
             $data['subject'] = $subject;
+            
 
-            // echo $class;
+                    
+
+            $data['outof'] = $this->igcse_m->fetch_outof($exam);
+            // echo"<pre>";
+            // print_r($outof);
+            // echo "<pre>";
             // die;
 
             // Retrieve students
@@ -1191,12 +1219,17 @@ class Trs extends Trs_Controller
             $thread = $this->input->post('thread');
             $exam = $this->input->post('exam');
             $subject = $this->input->post('subject');
+            $type = $this->igcse_m->fetch_exam_details($exam);
+            $gd_id = $this->input->post('grading');
+            $outof = $this->input->post('outof');
 
             $student_ids = $this->input->post('student');
+            $classgroup = $this->igcse_m->fetch_classgroup($class);
 
             // Retrieve marks from the input fields named 'marksnew[]' and 'marks[]'
             $marks_new = $this->input->post('marksnew');
             $marks = $this->input->post('marks');
+            $user = $this->ion_auth->get_user();
 
            
             foreach ($marks_new as $student_id => $mark_new) {
@@ -1205,18 +1238,51 @@ class Trs extends Trs_Controller
                 $this->db->where('subject', $subject);
                 $this->db->update('igcse_marks_list');
             }
+            foreach ($marks_new as $student_id => $mark_new) {
+                $formdata = array(
+                    'marks' => $mark_new,
+                    'out_of' => $outof,
+                    'modified_by' => $user->id,
+                    'modified_on' => time(), 
+                );
+
+                $this->db->set($formdata);
+                $this->db->where('student', $student_id);
+                $this->db->where('subject', $subject);
+                $this->db->update('igcse_marks_list');
+            }
 
             foreach ($marks as $student_id => $mark) {
                 $data = array(
                     'student' => $student_id,
+                    // 'grading' =>$gd_id,
                     'marks' => $mark,
                     'class' => $class,
                     'subject' => $subject,
-                    
+                    'tid' => $thread,
+                    'exams_id' => $exam,
+                    'type' => $type->type,
+                    'out_of'=> $outof,
+                    'created_on' => time(),
+                    'created_by' =>$user->id ,
+                    'class_group' => $classgroup->class
+
                      );
+
+
+            
+            
 
                 $this->igcse_m->save_marks($data);
             }
+
+            //  echo"<pre>";
+            // print_r($data);
+            // echo "<pre>";
+            // die;
+
+            redirect('trs/record');
+
            
         }
     }

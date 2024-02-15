@@ -16,6 +16,7 @@
                     <div class="col-md-2"><button class="btn btn-warning" type="button" onClick="window.print()"><i class="glyphicon glyphicon-print"></i></button></div>
                     <?php echo form_close()?>
                 </div>
+                
 
                 <div class="col-md-12 view-title center">
                     <h1><img src="<?php echo base_url('uploads/files/' . $settings->document); ?>" width="80" height="80" />  </h1>	

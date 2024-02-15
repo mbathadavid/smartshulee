@@ -28,15 +28,39 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
   if ($marks) { ?>
     <div class="alert alert-danger" style="margin-right: 70px; margin-left: 70px;">
       <p> Some previously Added Marks were found for <?php echo count($marks); ?> Students. You can only Edit.</p>
+
     </div>
 
   <?php }
   ?>
 
+  <?php echo form_open(base_url('trs/submit_marks'), array('id' => 'marksForm')); ?>
   <div class="container" id="dataTable" style="padding-bottom: 20px;">
+    <div class="col-md-12 mt-2 mb-3 " style="margin-bottom: 20px;">
+      <div class="col-md-6">
+        <div class="form-group row">
+          <label for="outof1" class="col-md-4 col-form-label">Grading system:</label>
+          <div class="col-md-8">
+            <?php
+            echo form_dropdown('grading', array('' => '') + $grading, isset($sel_gd) ? $sel_gd : '', ' class="select" data-placeholder="Select Grading System" required ');
+            echo form_error('grading');
+            ?>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group row">
+          <label for="outof2" class="col-md-4 col-form-label">Exam Out_of:</label>
+          <div class="col-md-8">
+            <input type="number" name="outof" id="outof2" value="<?php echo isset($outof->out_of) ? $outof->out_of : ''; ?>" class="form-control" placeholder="Exam Out_of" required>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <?php echo form_open(base_url('trs/submit_marks')); ?>
-    <table class="table table-bordered table-striped" width:100%;>
+
+
+    <table class="table table-bordered table-striped">
       <thead>
         <tr>
 
@@ -69,14 +93,14 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
                   if ($mark->student == $student->id) :
                     $foundMark = true;
                 ?>
-                    <input type="text" name="marksnew[<?php echo $student->id ?>]" value="<?php echo $mark->marks; ?>" class="form-control">
+                    <input type="text" name="marksnew[<?php echo $student->id ?>]" value="<?php echo $mark->marks; ?>" class="form-control" required>
                   <?php
                     break;
                   endif;
                 endforeach;
                 if (!$foundMark) :
                   ?>
-                  <input type="number" name="marks[<?php echo $student->id ?>]" value="" class="form-control" placeholder="Enter Marks">
+                  <input type="number" name="marks[<?php echo $student->id ?>]" value="" id="marks_<?php echo $student->id ?>" class="form-control" placeholder="Enter Marks" required>
                 <?php endif; ?>
               </td>
 
@@ -91,11 +115,28 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
     <div><button type="submit" class="btn btn-primary pull-right">Submit Marks</button>
       <?php echo form_close(); ?></div>
 
+
+
   </div>
 
 
 
 </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('input[name^="marks"]').on('change', function() {
+      var marksInput = $(this);
+      var marksValue = parseFloat(marksInput.val());
+      var outofValue = parseFloat($('#outof2').val());
+
+      if (marksValue > outofValue) {
+        alert('Marks cannot be greater than Out_of');
+        marksInput.val(''); // Clear the invalid value
+      }
+    });
+  });
+</script>
 <script>
   $(document).ready(function() {
     $('#thread-dropdown').change(function() {
@@ -178,4 +219,53 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
       }
     });
   }
+</script>
+
+<script>
+  $(document).ready(function() {
+    $('form').submit(function(event) {
+      var error = false;
+
+      // Loop through each marks input field
+      $('[name^="marksnew"]').each(function() {
+        var marks = parseInt($(this).val()); // Get the value of the current marks input
+        var outof = parseInt($('#outof2').val()); // Get the value of the outof input
+
+        // Check if marks is greater than outof
+        if (marks > outof) {
+          error = true;
+          return false; // Exit the loop early
+        }
+      });
+
+      // If no marksnew input fields found, check the initial marks input field
+      if (!$('[name^="marksnew"]').length) {
+        var marks = parseInt($('[name^="marks"]').val()); // Get the value of the initial marks input field
+
+        // Check if marks is greater than outof
+        if (marks > outof) {
+          error = true;
+        }
+      }
+
+      if (error) {
+        event.preventDefault(); // Prevent form submission
+        alert('Marks cannot be more than Out_of'); // Show error message
+      }
+    });
+  });
+</script>
+
+<script>
+  $(document).ready(function() {
+    $('#marksForm').submit(function(e) {
+      var marks = parseInt($('.marks').val());
+      var outof = parseInt($('.outof').val());
+
+      if (marks > outof) {
+        alert('Marks cannot be greater than out of');
+        e.preventDefault(); // Prevent form submission
+      }
+    });
+  });
 </script>

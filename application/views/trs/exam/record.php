@@ -16,7 +16,7 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
         </h3>
         <div class="pull-right">
 
-
+            <a class="btn btn-success " href="<?php echo base_url('trs/view'); ?>"><i class="fa fa-eye"></i> View Marks</a>
             <a class="btn btn-danger " onclick="goBack()"><i class="fa fa-caret-left"></i> Go Back</a>
         </div>
 
@@ -29,7 +29,7 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-12 col-sm-12">
-                        <?php 
+                        <?php
                         $subject = $this->input->post('subject');
                         echo form_open(base_url('trs/addmarks/' . $subject)); ?>
                         <div class="col-sm-3">

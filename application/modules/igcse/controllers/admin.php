@@ -847,6 +847,12 @@ class Admin extends Admin_Controller
         }
         return $perf_list;
     }
+
+    public function view(){
+
+        $this->template->title('View Reports')->build('admin/reports');
+
+    }
     private function rec_validation()
     {
 

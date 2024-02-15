@@ -181,6 +181,39 @@ function populate($table,$option_val,$option_text)
             ->get('subjects_assign');
         return $query->result();
     }
+    function fetch_outof($exam)
+    {
+
+        $query = $this->db->where('exams_id', $exam)
+            ->get('igcse_marks_list');
+        return $query->row();
+    }
+
+    function fetch_exam_details($exam)
+    {
+
+        $query = $this->db->where('id', $exam)
+            ->get('igcse_exams');
+        return $query->row();
+    }
+
+    function fetch_classgroup($class)
+    {
+
+        $query = $this->db->where('id', $class)
+            ->get('classes');
+        return $query->row();
+    }
+
+    function get_marks_trs($class, $subject)
+    {
+        $query = $this->db->where('class', $class)
+            ->where('subject', $subject)
+            ->get('igcse_marks_list');
+        return $query->result();
+    }
+
+
 
 
     function get_class_with_teacher()
@@ -207,6 +240,15 @@ function populate($table,$option_val,$option_text)
         $this->db->where($this->dx('class') . " ='" . $class . "'", NULL, FALSE);
         $this->db->where($this->dx('status') . " ='" . 1 . "'", NULL, FALSE);
         return $this->db->get('admission')->result();
+    }
+
+  
+
+    function get_st($id)
+    {
+        $this->select_all_key('admission');
+        $this->db->where('id', $id);
+        return $this->db->get('admission')->row();
     }
 
     public function get_results($student, $subject)
