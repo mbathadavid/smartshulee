@@ -1,3 +1,5 @@
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
 <?php $settings = $this->ion_auth->settings(); ?>
 <div class="col-md-12">
 
@@ -26,7 +28,7 @@
           <div class="row">
             <div class="col">
               <div class="blue-bg">
-               ACADEMIC REPORT FORM - YEAR 7-ENTRANCE EXAM - (2024/TERM 1)
+                ACADEMIC REPORT FORM - YEAR 7-ENTRANCE EXAM - (2024/TERM 1)
               </div>
             </div>
           </div>
@@ -49,6 +51,8 @@
                   </div>
                 </div>
                 <div class="col-md-6" style="border-left: 1px solid #ccc; height: 180px;">
+
+                
                   <p>graph</p>
                 </div>
               </div>

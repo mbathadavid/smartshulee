@@ -1,270 +1,71 @@
-<?php
-// echo "<pre>";
-// print_r($this->school);
-// echo "</pre>";
-?>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-<div class="head">
-  <div class="icon"></div>
-  <h2><?php echo $thread->title . ' - (Term ' . $thread->term . ' ' . $thread->year . ')' ?></h2>
-  <div class="right"></div>
-</div>
-<?php
-$sslist = array();
-foreach ($this->classlist as $ssid => $s) {
-  $sslist[$ssid] = $s['name'];
-}
-
-// $s1 = $rank ? '' : ' checked="checked" ';
-// $s2 = '';
-// $s3 = '';
-// if ($rank)
-// {
-//     $s1 = $rank == 1 ? ' checked="checked" ' : '';
-//     $s2 = $rank == 2 ? ' checked="checked" ' : '';
-//     $s3 = $rank == 3 ? ' checked="checked" ' : '';
-// }
-?>
-<div class="toolbar">
+<div class="invoice">
   <div class="row row-fluid">
-    <div class="col-md-12 span12">
-      <?php echo form_open(current_url()); ?>
-      <div class="row mb-3">
-        <div class="col-lg-3 col-md-3">
-          Class
-          <?php echo form_dropdown('group', array("" => " Select ") + $this->classes, $this->input->post('group'), 'class ="tsel"'); ?>
-        </div>
-        <div class="col-lg-1 col-md-1">
-          OR
-        </div>
-        <div class="col-lg-3 col-md-3">
-          Stream
-          <?php echo form_dropdown('class', array('' => 'Select') + $sslist, $this->input->post('class'), 'class ="tsel" '); ?>
-        </div>
-        <div class="col-lg-3 col-md-3">
-          Compare With (For Deviation)
-          <?php
-          $gradings = $this->igcse_m->populate('grading_system', 'id', 'title');
-          echo form_dropdown('thread', array('' => 'Select') + $threads, $this->input->post('thread'), 'class ="tsel"');
-          ?>
-        </div>
-        <div class="col-lg-2 col-md-2">
-          View <br>
-          <button class="btn btn-primary" type="submit">View Results</button>
-        </div>
-      </div>
 
-      <div class="pull-right">
-        <a href="" onClick="window.print(); return false" class="btn btn-warning"><i class="icos-printer"></i> Print </a>
-      </div>
-      <?php echo form_close(); ?>
+    <div class="col-md-6" style="border-left: 1px solid #ccc; height: 180px;">
+      <div id="chart"></div>
+      <?php
+
+      // Individual means for subjects
+      $individual_means = [
+        "english" => 75,
+        "kisw" => 85,
+        "maths" => 70,
+        // Add more subjects as needed
+      ];
+
+      // Class means for subjects
+      $class_means = [
+        "english" => 80,
+        "kisw" => 82,
+        "maths" => 78,
+        // Add more subjects as needed
+      ];
+
+
+      ?>
+      <script>
+        var options = {
+          series: [{
+            name: 'Individual Means',
+            data: <?php echo json_encode(array_values($individual_means)); ?>
+          }, {
+            name: 'Class Means',
+            data: <?php echo json_encode(array_values($class_means)); ?>
+          }],
+          chart: {
+            height: 200,
+            width: 450,
+            type: 'area',
+            zoom: {
+              enabled: false
+            }
+          },
+          dataLabels: {
+            enabled: false
+          },
+          stroke: {
+            curve: 'smooth'
+          },
+          xaxis: {
+            type: 'category',
+            categories: <?php echo json_encode(array_keys($individual_means)); ?>
+          },
+          tooltip: {
+            x: {
+              format: 'dd/MM/yy HH:mm'
+            },
+          },
+        };
+
+        var chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
+      </script>
+
     </div>
   </div>
 </div>
-
-<?php $settings = $this->ion_auth->settings(); ?>
-
-
-<?php
-if (isset($results)) {
-
-  // echo "<pre>";
-  // print_r($results);
-  // print_r($resultpositions);
-  // print_r($thread);
-  // echo "</pre>";
-
-
-  foreach ($results as $key => $result) {
-    $stu = $this->worker->get_student($result->student);
-
-?>
-    <div class="invoice">
-      <div class="row row-fluid">
-        <div class="col-md-12">
-          <div class="row">
-            <div class="col-md-6 logo">
-              <h1><img src="<?php echo base_url('uploads/files/' . $settings->document); ?>" width="80" height="80" /></h1>
-            </div>
-            <div class="col-md-6 text-right">
-              <h5 class="blue-text"><?php echo ucwords($settings->school); ?></h5>
-              <p><?php echo $this->school->postal_addr ?></p>
-              <p><?php echo $this->school->cell ?></p>
-              <p><?php echo $this->school->email ?></p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row row-fluid">
-        <div class="row row-fluid" style="margin-top: 20px;">
-          <div class="col">
-            <div class="blue-bg">
-              ACADEMIC REPORT FORM - <?php echo $this->classes[$result->class_group] ?> - <?php echo $thread->title ?> - (<?php echo $thread->year ?>/Term <?php echo $thread->term ?>)
-            </div>
-          </div>
-        </div>
-        <div class="row row-fluid" style="margin-top:20px; margin-bottom: 20px; margin-left:0px">
-          <div class="col-md-12">
-            <div class="row row-fluid">
-              <div class="col-md-6">
-                <div class="row row-fluid">
-                  <div class="col-md-6" style="border-right: 1px solid #ccc; height: 100%;">
-                    <div class="profile">
-                      <?php
-                      if (!empty($st->photo)) :
-                        $passport = $this->ion_auth->passport($st->photo);
-                        if ($passport) {
-                      ?>
-                          <image src="<?php echo base_url('uploads/' . $passport->fpath . '/' . $passport->filename); ?>" width="100" height="100" class="img-polaroid" style="align:left">
-                          <?php } ?>
-
-                        <?php else : ?>
-                          <?php echo theme_image("thumb.png", array('class' => "img-polaroid", 'style' => "width:100px; height:100px; align:left")); ?>
-                        <?php endif; ?>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <p><strong>NAME:</strong> <?php echo ucwords($stu->first_name . " " . $stu->last_name) ?></p>
-                    <p><strong>ADMNO:<?php echo $stu->admission_number ?></strong> </p>
-                    <p><strong>CLASS: <?php echo $this->streams[$stu->class] ?></strong></p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6" style="border-left: 1px solid #ccc; height: 180px;">
-                <p>graph</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row row-fluid">
-          <div class="col-md-12 bg-light">
-            <div class="col-md-3" style="padding: 5px;">
-              <b>
-                <p>Mean</p>
-              </b>
-              <p><strong><?php echo  $result->mean_grade ?>|<?php echo  $result->mean_mark ?>%</strong></p>
-            </div>
-            <div class="col-md-3" style="border-left: 2px solid black; height: 60px;"><b>
-                <p>Total Marks</p>
-              </b>
-              <p><strong><?php echo  $result->total ?>|<?php echo  $result->outof ?></strong></p>
-            </div>
-            <div class="col-md-3" style="border-left: 2px solid black; height: 60px;"><b>
-                <p>Total Points</p>
-              </b>
-              <p><strong>73|84</strong></p>
-            </div>
-            <div class="col-md-3" style="border-left: 2px solid black; height: 60px;">
-              <div class="row">
-                <div class="col-md-6">
-                  <p><b>Overall Position</b></p>
-                  <?php
-                  foreach ($resultpositions as $keeey => $posi) {
-
-                    if ($keeey === 'ovrpositions') {
-                      foreach ($posi as $posikey => $pos) {
-                        if ($posikey == $key) {
-
-                          $ovrpos = $pos;
-                          $ovroutof = count($posi);
-                        }
-                      }
-                    } elseif ($keeey === 'strpositions') {
-                      foreach ($posi as $posikey => $pos) {
-                        if ($posikey == $key) {
-
-                          $strpos = $pos;
-                          $stroutof = count($posi);
-                        }
-                      }
-                    }
-                  }
-                  ?>
-                  <p><strong><?php echo $ovrpos ?>|<?php echo $ovroutof ?></strong></p>
-                </div>
-                <div class="col-md-6">
-                  <p><b>Stream Position</b></p>
-                  <p><strong><?php echo $strpos ?>|<?php echo $stroutof ?></strong></p>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="row row-fluid">
-          <div class="col">
-            <div class="table-row">
-              <table class="table table-bordered custom-table">
-                <thead>
-                  <tr>
-                    <th scope="col" style="background-color: white; border: 1px solid black;">SUBJECTS</th>
-                    <th scope="col" style="background-color: white; border: 1px solid black;">MARKS</th>
-                    <th scope="col" style="background-color: white; border: 1px solid black;">DEV.</th>
-                    <th scope="col" style="background-color: white; border: 1px solid black;">GRADE</th>
-                    <th scope="col" style="background-color: white; border: 1px solid black;">RANK</th>
-                    <th scope="col" style="background-color: white; border: 1px solid black;">COMMENT</th>
-                    <th scope="col" style="background-color: white; border: 1px solid black;">TEACHER</th>
-                  </tr>
-                </thead>
-                <tbody>
-
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="row row-fluid" style="margin-top: 20px; height: 300px;">
-          <div class="col-md-12">
-            <div class="row">
-              <div class="col-md-6">
-                <h5>Students performance overtime graph</h5>
-              </div>
-              <div class="col-md-6">
-                <div class="report-form">
-                  <div class="row">
-                    <div class="col-md-8">
-                      <h5><strong>Remarks:</strong></h5>
-                      <h5><strong>Class Teacher</strong></h5>
-                      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. </p>
-                    </div>
-                    <div class="col-md-4">
-                      <h5><strong>Signature:</strong></h5>
-                      <div class="signature">
-
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-md-8">
-                      <h5><strong>Principal</strong></h5>
-                      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. </p>
-                    </div>
-                    <div class="col-md-4">
-                      <div class="signature">
-
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-<?php
-  }
-} ?>
-
-
 
 <script>
   $(document).ready(
