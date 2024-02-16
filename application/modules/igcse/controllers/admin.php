@@ -987,18 +987,23 @@ class Admin extends Admin_Controller
             }
             
             //Retrieve Final Results
-            $results = $this->igcse_m->results($id,$students);
-            $compareresults = $this->igcse_m->results($comparewith,$students);
-            $computedmarks = $this->igcse_m->get_student_computed_marks($id,$students);
+            if (empty($students)) {
+                $this->session->set_flashdata('message', array('type' => 'error', 'text' => 'No marks found for students in this Class'));
+                redirect('admin/igcse/bulk/' . $id);
+            } else {
+                $results = $this->igcse_m->results($id,$students);
+                $compareresults = $this->igcse_m->results($comparewith,$students);
+                $computedmarks = $this->igcse_m->get_student_computed_marks($id,$students);
 
-            $resultpositions = $this->get_result_positions($results);
-            $comparepositions = $this->get_result_positions($compareresults); 
+                $resultpositions = $this->get_result_positions($results);
+                $comparepositions = $this->get_result_positions($compareresults); 
 
-            $data['comparepositions'] = $comparepositions;
-            $data['resultpositions'] = $resultpositions;
-            $data['comparison'] = $comparewith;
-            $data['results'] = $results;
-            $data['computedmarks'] = $computedmarks;
+                $data['comparepositions'] = $comparepositions;
+                $data['resultpositions'] = $resultpositions;
+                $data['comparison'] = $comparewith;
+                $data['results'] = $results;
+                $data['computedmarks'] = $computedmarks;
+            }
         }
 
         

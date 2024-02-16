@@ -1,12 +1,11 @@
 <div class="head">
     <div class="icon"></div>
-    <h2><?php echo $thread->title.' - (Term '.$thread->term.' '.$thread->year.')' ?></h2>
-    <div class="right"></div>    					
+    <h2><?php echo $thread->title . ' - (Term ' . $thread->term . ' ' . $thread->year . ')' ?></h2>
+    <div class="right"></div>
 </div>
 <?php
 $sslist = array();
-foreach ($this->classlist as $ssid => $s)
-{
+foreach ($this->classlist as $ssid => $s) {
     $sslist[$ssid] = $s['name'];
 }
 
@@ -26,7 +25,7 @@ foreach ($this->classlist as $ssid => $s)
             <?php echo form_open(current_url()); ?>
             <div class="row mb-3">
                 <div class="col-lg-3 col-md-3">
-                    Class  
+                    Class
                     <?php echo form_dropdown('group', array("" => " Select ") + $this->classes, $this->input->post('group'), 'class ="tsel"'); ?>
                 </div>
                 <div class="col-lg-1 col-md-1">
@@ -38,17 +37,17 @@ foreach ($this->classlist as $ssid => $s)
                 </div>
                 <div class="col-lg-3 col-md-3">
                     Compare With (For Deviation)
-                    <?php 
-                        $gradings = $this->igcse_m->populate('grading_system','id','title');
-                        echo form_dropdown('thread', array('' => 'Select') + $threads, $this->input->post('thread'), 'class ="tsel"'); 
+                    <?php
+                    $gradings = $this->igcse_m->populate('grading_system', 'id', 'title');
+                    echo form_dropdown('thread', array('' => 'Select') + $threads, $this->input->post('thread'), 'class ="tsel"');
                     ?>
                 </div>
                 <div class="col-lg-2 col-md-2">
                     View <br>
-                    <button class="btn btn-primary"  type="submit">View Results</button>
+                    <button class="btn btn-primary" type="submit">View Results</button>
                 </div>
             </div>
-            
+
             <div class="pull-right">
                 <a href="" onClick="window.print(); return false" class="btn btn-warning"><i class="icos-printer"></i> Print </a>
             </div>
@@ -58,109 +57,189 @@ foreach ($this->classlist as $ssid => $s)
 </div>
 
 <?php
-    if (isset($results)) {
-       
-        echo "<pre>";
-            print_r($results);
-            print_r($resultpositions);
-        echo "</pre>";
-?>
+if (isset($results)) {
 
-<?php } ?>
+    // echo "<pre>";
+    // print_r($results);
+    // print_r($resultpositions);
+    // echo "</pre>";
+
+    foreach ($results as $key => $result) {
+        # code...  
+?>
+        <div class="invoice">
+            <!-- Transcript Start -->
+                
+            <!-- Transcript Start -->
+        </div>
+        <div class="page-break"></div>
+<?php
+    }
+}
+?>
 <script>
     $(document).ready(
-            function ()
-            {
-                $(".tsel").select2({'placeholder': 'Please Select', 'width': '200px'});
-                $(".tsel").on("change", function (e)
-                {
-                    notify('Select', 'Value changed: ' + e.added.text);
-                });
-                $(".fsel").select2({'placeholder': 'Please Select', 'width': '400px'});
-                $(".fsel").on("change", function (e)
-                {
-                    notify('Select', 'Value changed: ' + e.added.text);
-                });
+        function() {
+            $(".tsel").select2({
+                'placeholder': 'Please Select',
+                'width': '200px'
             });
+            $(".tsel").on("change", function(e) {
+                notify('Select', 'Value changed: ' + e.added.text);
+            });
+            $(".fsel").select2({
+                'placeholder': 'Please Select',
+                'width': '400px'
+            });
+            $(".fsel").on("change", function(e) {
+                notify('Select', 'Value changed: ' + e.added.text);
+            });
+        });
 </script>
 
 <style>
-    .xxd, .editableform textarea {
-        height: 150px !important; 
+    .xxd,
+    .editableform textarea {
+        height: 150px !important;
     }
-    .editable-container.editable-inline 
-    {
+
+    .editable-container.editable-inline {
         width: 89%;
     }
-    .col-sm-2{
+
+    .col-sm-2 {
         width: 16.66666667%;
     }
-    .col-sm-8{
+
+    .col-sm-8 {
         width: 66.66666667%;
     }
 
     .editable-input {
-        display: inline; 
+        display: inline;
         width: 89%;
     }
+
     .editableform .form-control {
         width: 89%;
     }
-    .invoice{padding: 20px;}
+
+    .invoice {
+        padding: 20px;
+    }
+
     .topdets {
-        width:85%;
+        width: 85%;
         margin: 6px auto;
         border: 0;
     }
-    .topdets th,  .topdets td ,.topdets 
-    {
+
+    .topdets th,
+    .topdets td,
+    .topdets {
         border: 0;
     }
-    .morris-hover{position:absolute;z-index:1000;}.morris-hover.morris-default-style{border-radius:10px;padding:6px;color:#666;background:rgba(255, 255, 255, 0.8);border:solid 2px rgba(230, 230, 230, 0.8);font-family:sans-serif;font-size:12px;text-align:center;}.morris-hover.morris-default-style .morris-hover-row-label{font-weight:bold;margin:0.25em 0;}
-    .morris-hover.morris-default-style .morris-hover-point{white-space:nowrap;margin:0.1em 0;}
-    .tablex{ width: 95% !important; margin: auto 15px  !important; border:1px solid #000 !important;}
-    .tablex tr{
-        border:1px solid #000 !important;
+
+    .morris-hover {
+        position: absolute;
+        z-index: 1000;
     }
-    .tablex td{
-        border:1px solid #000;
+
+    .morris-hover.morris-default-style {
+        border-radius: 10px;
+        padding: 6px;
+        color: #666;
+        background: rgba(255, 255, 255, 0.8);
+        border: solid 2px rgba(230, 230, 230, 0.8);
+        font-family: sans-serif;
+        font-size: 12px;
+        text-align: center;
     }
-    .tablex th{
-        border:1px solid #000 !important;
+
+    .morris-hover.morris-default-style .morris-hover-row-label {
+        font-weight: bold;
+        margin: 0.25em 0;
     }
-    .page-break{margin-bottom: 15px;}
-    .dropped
-    {
+
+    .morris-hover.morris-default-style .morris-hover-point {
+        white-space: nowrap;
+        margin: 0.1em 0;
+    }
+
+    .tablex {
+        width: 95% !important;
+        margin: auto 15px !important;
+        border: 1px solid #000 !important;
+    }
+
+    .tablex tr {
+        border: 1px solid #000 !important;
+    }
+
+    .tablex td {
+        border: 1px solid #000;
+    }
+
+    .tablex th {
+        border: 1px solid #000 !important;
+    }
+
+    .page-break {
+        margin-bottom: 15px;
+    }
+
+    .dropped {
         border-bottom: 3px solid silver !important;
     }
-    legend{
+
+    legend {
         width: auto;
         padding: 4px;
         margin-bottom: 0;
         border: 0;
         font-size: 11px;
     }
+
     fieldset {
         padding: 5px;
         border: 1px solid silver;
         border-radius: 7px;
     }
-    @media print 
-    {
-        .invoice{padding: 20px !important;}
+
+    @media print {
+        .invoice {
+            padding: 20px !important;
+        }
+
         .topdets {
-            width: 85% !important; margin: auto 15px  !important;
+            width: 85% !important;
+            margin: auto 15px !important;
             border: 0;
         }
-        .tablex{ width: 100%;}
-        .page-break{ display: block; page-break-after: always; position: relative;}
-        table td, table th { padding: 4px; }
-        .editable-click, a.editable-click, a.editable-click:hover {
+
+        .tablex {
+            width: 100%;
+        }
+
+        .page-break {
+            display: block;
+            page-break-after: always;
+            position: relative;
+        }
+
+        table td,
+        table th {
+            padding: 4px;
+        }
+
+        .editable-click,
+        a.editable-click,
+        a.editable-click:hover {
             text-decoration: none;
             border-bottom: none !important;
         }
-        .dropped
-        {
+
+        .dropped {
             border-bottom: 3px solid silver !important;
         }
     }

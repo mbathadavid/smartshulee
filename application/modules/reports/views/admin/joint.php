@@ -62,693 +62,692 @@ $bars = array();
 $ties = array();
 $keys = array_keys($mks);
 
-foreach ($mks as $student => $pyl)
-{
-    $ij++;
-    $st = $this->worker->get_student($student);
-    $cst = ' - ';
-
-    if (isset($st->cl))
+    foreach ($mks as $student => $pyl)
     {
-        $crr = isset($this->classes[$st->cl->class]) ? $this->classes[$st->cl->class] : '';
-        $ctr = isset($streams[$st->cl->stream]) ? $streams[$st->cl->stream] : '';
-        $cst = $crr . $ctr;
-    }
-    $p = (object) $pyl;
-    ?>
-    <div class="invoice">
-        <div class="row row-fluid">
-            <div class="row-fluid center">
-                <?php
-                $file = FCPATH . '/uploads/joint-header.png';
-                if (file_exists($file))
-                {
-                    ?>
-                    <span class="col-sm-2" style="text-align:center"></span>
-                    <span class="col-sm-8" style="text-align:center">
-                        <img src="<?php echo base_url('uploads/joint-header.png'); ?>" class="center"    />
-                    </span>
-                    <span class="col-sm-2" style="text-align:center">
-                        <?php
-                        if (!empty($st->photo)):
-                            $passport = $this->ion_auth->passport($st->photo);
-                            if ($passport)
-                            {
-                                ?> 
-                                <image src="<?php echo base_url('uploads/' . $passport->fpath . '/' . $passport->filename); ?>" width="100" height="100" class="img-polaroid" style="align:left">
-                            <?php } ?>	
+        $ij++;
+        $st = $this->worker->get_student($student);
+        $cst = ' - ';
 
-                        <?php else: ?>   
-                            <?php echo theme_image("thumb.png", array('class' => "img-polaroid", 'style' => "width:100px; height:100px; align:left")); ?>
-                        <?php endif; ?>
-                    </span>
-                    <?php
-                }
-                else
-                {
-                    ?>
-                    <div class="col-sm-2"></div>
-                    <div class="col-sm-8">
-                        <span class="" style="text-align:center">
-                            <img src="<?php echo base_url('uploads/files/' . $this->school->document); ?>" class="center"  width="120" height="120" />
-                        </span>
-                        <h3>
-                            <span style="text-align:center !important;font-size:15px;"><?php echo strtoupper($this->school->school); ?></span>
-                        </h3>
-                        <small style="text-align:center !important;font-size:12px; line-height:2px;">
-                            <?php
-                            if (!empty($this->school->tel))
-                            {
-                                echo $this->school->postal_addr . ' Tel:' . $this->school->tel . ' ' . $this->school->cell;
-                            }
-                            else
-                            {
-                                echo $this->school->postal_addr . ' Cell:' . $this->school->cell;
-                            }
-                            ?>
-                        </small>
-                        <h3>
-                            <span style="text-align:center !important;font-size:13px; font-weight:700; border:double; padding:5px;">MOTTO: <?php echo strtoupper($this->school->motto); ?></span>
-                        </h3>
-                        <small style="text-align:center !important;font-size:20px; line-height:2px; border-bottom:2px solid  #ccc;">Student Performance Terminal Report</small>
-                    </div>		
-                    <div class="col-sm-2">
-                        <?php
-                        if (!empty($st->photo)):
-                            $passport = $this->ion_auth->passport($st->photo);
-                            if ($passport)
-                            {
-                                ?> 
-                                <image src="<?php echo base_url('uploads/' . $passport->fpath . '/' . $passport->filename); ?>" width="100" height="100" class="img-polaroid" style="align:left">
-                            <?php } ?>	
-
-                        <?php else: ?>   
-                            <?php echo theme_image("thumb.png", array('class' => "img-polaroid", 'style' => "width:100px; height:100px; align:left")); ?>
-                        <?php endif; ?>
-                    </div>	
-                <?php } ?>                              
-            </div>
-
-
-            <table class="topdets">
-                <tr>
-                    <td><strong>Name: </strong>
-                        <abbr><?php echo $st->first_name . ' ' . $st->last_name; ?>  </abbr>
-                    </td>
-                    <td><strong> Age: </strong> <?php echo (!empty($st->dob) && $st->dob > 10000) ? $this->dates->createFromTimeStamp($st->dob)->diffInYears() : '-'; ?> </td>
-                    <td><strong> Class: </strong> <abbr><?php echo $st->cl->name; ?></abbr></td>
-                    <td><strong>ADM No : </strong>
-                        <abbr><?php echo isset($st->old_adm_no) && !empty($st->old_adm_no) ? $st->old_adm_no : $st->admission_number; ?></abbr>
-                        <span class="hidden">  &nbsp;&nbsp;&nbsp; <strong>KCPE Marks:  </strong><?php echo $st->entry_marks; ?></span>
-                    </td>
-                    <td> <strong>Class Teacher : </strong>
-                        <abbr>
-                            <?php
-                            $cc = '';
-                            if (!empty($st->cl->class) && !empty($st->cl->class_teacher))
-                            {
-                                $ctc = $this->ion_auth->get_user($st->cl->class_teacher);
-                                if ($ctc)
-                                {
-                                    $cc = $ctc->first_name . ' ' . $ctc->last_name;
-                                }
-                            }
-                            echo $cc;
-                            ?>
-                        </abbr>
-                    </td>
-                </tr>
-            </table>
-            <div class="row">
-                <div class="hidden">
-                    <?php
-                    if (!empty($st->pass))
-                    {/*
-                      ?>
-                      <img src="<?php echo base_url('uploads/' . $st->pass->fpath . '/' . $st->pass->filename); ?>" alt="">
-                      <?php */
-                    }
-                    ?>
-                </div>                   
-            </div>
-        </div>
-        <br/>
-        <table class="tablex table-bordered">
-            <thead>
-                <tr>
-                    <th class="text-center">#</th>
-                    <th><b>Subject</b></th>
-                    <?php
-                    $tf = 0;
-
-                    foreach ($list as $l)
-                    {
-                        $tf++;
-                        $pref = str_ireplace('Exams', '', $l->title);
-                        $pref = str_ireplace('Exam', '', $pref);
-                        $tt = trim($pref) . ' ' . $l->term . ' ' . $l->year;
-                        ?>
-                        <th><b><?php echo $tt; ?></b></th>
-                        <?php
-                    }
-                    ?>
-                    <?php
-                    if (count($list) > 1)
-                    {
-                        ?>
-                        <th><b>Average.</b></th>
-                    <?php } ?>
-                    <th><b>Class AVG.</b></th>
-                    <th><b>Grade</b></th>
-                    <th><b>Remarks</b></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $is_opt = array();
-                $i = 0;
-                $grading = 0;
-                foreach ($p->res as $sub => $spms)
-                {
-                    $sp = (object) $spms;
-
-                    $i++;
-                    $grading = $sp->grading;
-
-                    $dr = 0;
-
-                    if (isset($sp->units) && !empty($sp->units))
-                    {
-                        if ($show)
-                        {
-                            foreach ($sp->units as $uxid => $uxres)
-                            {
-                                //these are sub units
-                                if ($uxid == '-')
-                                {
-                                    continue;
-                                }
-                                ?>
-                                <tr>
-                                    <td class="text-center"></td>
-                                    <td><?php echo $uxid; ?></b></td>
-                                    <?php
-                                    foreach ($uxres as $e)
-                                    {
-                                        $rs = (object) $xres;
-                                        ?>
-                                        <td><small><?php echo $e; ?></small></td>
-                                    <?php } ?>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                                <?php
-                            }
-                        }
-                        ?>
-                        <tr>
-                            <td class="text-center"><?php echo $i; ?></td>
-                            <td><b><?php echo $sp->subject; ?></b></td>
-                            <?php
-                            //These are exams with sub units
-                            $k = 0;
-                            foreach ($sp->maks as $xid => $xres)
-                            {
-                                $k++;
-                                $rs = (object) $xres;
-                                if ($rs->opt == 1 && $k == 1)//insert once only
-                                {
-                                    $is_opt[] = $rs->marks;
-                                }
-                                if ($rank > 1 && in_array($rs->sub_id, $ranked[$student][$xid]['dropped']))
-                                {
-                                    $dr = 1;
-                                }
-                                ?>
-                                <td class="text-right <?php echo $dr ? 'dropped' : ''; ?>"><b><?php echo $rs->marks; ?>(<?php $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
-                echo isset($rmks->grade) && isset($grade_title[$rmks->grade]) ? $grade_title[$rmks->grade] : '';
-                                ?>)</b></td>
-                                <?php
-                                if (count($list) == 1)
-                                {
-                                    break;  //hide avg column if single exam
-                                }
-                            }
-                            ?>
-                            <td style="text-align:center"><?php echo isset($class_avg[$sp->sub_id]) ? $class_avg[$sp->sub_id] : '-'; ?></td>
-                            <td style="text-align:center">
-                                <strong>
-                                    <?php
-                                    $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
-                                    echo isset($rmks->grade) && isset($grade_title[$rmks->grade]) ? $grade_title[$rmks->grade] : '';
-                                    ?> 
-                                </strong> 
-                            </td>
-                            <td style="text-align:center"><strong> <?php
-                                    $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
-                                    echo isset($rmks->grade) && isset($grades[$rmks->grade]) ? $grades[$rmks->grade] : '';
-                                    ?> </strong> 
-                            </td>
-                        </tr>
-                        <?php
-                    }
-                    else
-                    {
-                        //These are exams without sub units
-                        ?>
-                        <tr>
-                            <td class="text-center"><?php echo $i; ?></td>
-                            <td><b><?php echo $sp->subject; ?></b></td>
-                            <?php
-                            $k = 0;
-                            foreach ($sp->maks as $xid => $xres)
-                            {
-                                $k++;
-                                $rs = (object) $xres;
-                                if ($rs->opt == 1 && $k == 1)//insert once only
-                                {
-                                    $is_opt[] = $rs->marks;
-                                }
-
-
-                                if ($rank > 1 && $xid != 999999 && in_array($rs->sub_id, $ranked[$student][$xid]['dropped']))
-                                {
-                                    $dr = 1;
-                                }
-                                ?>
-                                <td class="text-right <?php echo $dr ? 'dropped' : ''; ?>"><b><?php echo $rs->marks; ?>
-                                        (<?php $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
-                                echo isset($rmks->grade) && isset($grade_title[$rmks->grade]) ? $grade_title[$rmks->grade] : '';
-                                ?>)</b>
-                                </td>
-                                <?php
-                                if (count($list) == 1)
-                                {
-                                    break;
-                                }
-                            }
-                            ?>
-                            <td style="text-align:center"><?php echo isset($class_avg[$sp->sub_id]) ? $class_avg[$sp->sub_id] : '-'; ?></td>
-                            <td style="text-align:center">
-                                <strong> 
-                                    <?php
-                                    $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
-                                    echo isset($rmks->grade) && isset($grade_title[$rmks->grade]) ? $grade_title[$rmks->grade] : '';
-                                    ?> 
-                                </strong>
-                            </td>
-                            <td style="text-align:center">
-                                <strong> <?php
-                                    $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
-                                    echo isset($rmks->grade) && isset($grades[$rmks->grade]) ? $grades[$rmks->grade] : '';
-                                    ?> 
-                                </strong> 
-                            </td>
-                        </tr>
-                        <?php
-                    }
-                }
-                ?>
-                <tr class="rttbx">
-                    <td class="text-center"> </td>
-                    <td> </td>
-                    <?php
-                    foreach ($p->tots as $gd)
-                    {
-                        ?>
-                        <td class="text-right"></td>  
-                        <?php
-                    }
-                    if (count($list) > 1)
-                    {
-                        ?>
-                        <td class="">  </td>
-                    <?php } ?>
-                    <td class="">  </td>
-                    <?php
-                    if (count($this->input->post('exams')))
-                    {
-                        echo '<td colspan="' . (count($this->input->post('exams')) - 2) . '" class="bltop"> </td>';
-                    }
-                    ?>
-                </tr>
-                <tr class="rttbx">
-                    <td class="text-center"> </td>
-                    <td> <strong> Class Average  </strong></td>
-                    <?php
-                    $iii = 0;
-                    $ix = 0;
-                    foreach ($tot_avg as $gd)
-                    {
-                        $iii++;
-                        ?>
-                        <td class="text-right"><?php echo round($gd / (count($p->res) - count($is_opt) )); ?></td> 
-                        <?php
-                        if (count($list) == 1)
-                        {
-                            $ix++;
-                            ?>
-                            <td class="">  </td>
-                            <?php
-                            break;
-                        }
-                        ?>
-                    <?php } ?>
-                    <?php
-                    if (count($list) > 1)
-                    {
-                        ?>
-                        <td>  </td>
-                    <?php } ?>
-
-
-                    <?php
-                    if (count($this->input->post('exams')))
-                    {
-                        echo '<td colspan="' . (count($this->input->post('exams')) - 2) . '" class="bltop"> </td>';
-                    }
-                    ?>
-                </tr>                   
-                <tr class="rttbx">
-                    <td class="text-center"> </td>
-                    <td> <strong> Student Average  </strong></td>
-                    <?php
-                    $average = 0;
-                    foreach ($p->tots as $tid => $gd)
-                    {
-                        $average = $rank > 1 ? round($ranked[$student][$tid]['total_ranked'] / 7, 2) : round($gd / (count($p->res) - count($is_opt) )); //access the value of avg for average column by overwriting until the end
-                        ?>
-                        <td class="text-right">
-                            <?php
-                            $all_mkrs = $rank > 1 ? round($ranked[$student][$tid]['total_ranked'] / 7, 2) : round($gd / (count($p->res) - count($is_opt) ));
-                            echo $all_mkrs;
-                            ?>
-                            (<?php
-                            $avg_rw = $this->ion_auth->remarks($grading, $all_mkrs);
-                            $avg_grade = isset($avg_rw->grade) && isset($grade_title[$avg_rw->grade]) ? $grade_title[$avg_rw->grade] : '';
-
-                            echo $avg_grade;
-                            ?>)
-                        </td>
-                        <?php
-                        if (count($list) == 1)
-                        {
-                            ?>
-                            <td class="">  </td>
-                            <?php
-                            break;
-                        }
-                        ?>
-                        <?php } ?>
-                    <td class="text-center">
-                        <?php
-                        $avg_rw = $this->ion_auth->remarks($grading, $average);
-                        $avg_grade = isset($avg_rw->grade) && isset($grade_title[$avg_rw->grade]) ? $grade_title[$avg_rw->grade] : '';
-                        if (empty($avg_grade))
-                        {
-                            $avg_grade = ' - ';
-                        }
-                        //echo $avg_grade;
-                        ?>
-                    </td>
-                    <td></td>
-                    <?php
-                    if (count($list) > 1)
-                    {
-                        ?>
-                        <td class="">  </td>
-    <?php } ?>
-                </tr>
-                <tr class="rttbx">
-                    <td class="text-center"> </td>
-                    <td> <strong> Total </strong></td>
-                    <?php
-                    $t = 0;
-                    foreach ($p->tots as $xid => $gd)
-                    {
-                        $t++;
-                        ?>
-                        <td class="text-right">
-                            <?php
-                            if (count($list) == 1)
-                            {
-                                if ($t == 1)
-                                {
-                                    echo $rank > 1 ? $ranked[$student][$xid]['total_ranked'] : $gd;
-                                }
-                            }
-                            else
-                            {
-                                echo $rank > 1 ? $ranked[$student][$xid]['total_ranked'] : $gd;
-                            }
-                            ?></td>  
-                    <?php } ?>
-                    <?php
-                    if (count($list) > 1)
-                    {
-                        ?>
-                        <td class="">  </td>
-                    <?php } ?>
-                    <td class="">  </td>
-                    <?php
-                    if (count($this->input->post('exams')))
-                    {
-                        echo '<td colspan="' . (count($this->input->post('exams')) - 2) . '" class="bltop"> </td>';
-                    }
-                    ?>
-                </tr>
-                <tr>
-                    <td> </td>
-                    <?php
-                    if (count($this->input->post('exams')))
-                    {
-                        echo '<td colspan="' . count($this->input->post('exams')) . '" class="bltop"> </td>';
-                    }
-
-                    if ($ij > 1)
-                    {
-                        $prevk = $mks[$keys[array_search($student, $keys) - 1]];
-                        $pxvg = $prevk['avg'];
-
-                        if ($pxvg == $p->avg) //if previous == current, maintain pos
-                        {
-                            $ties[] = $p->avg;
-                            $poss = $ij - (count($ties) );
-                        }
-                        else
-                        {
-                            if (!empty($ties))
-                            {
-                                // $ij = $ij- count($ties); //uncomment to disable skipping the tied positions
-                            }
-                            $ties = array(); //clear 
-                            $poss = $ij;
-                        }
-                    }
-                    else
-                    {
-                        $poss = $ij;
-                        $pxvg = '';
-                    }
-                    ?>
-                    <?php
-                    if (count($list) > 1)
-                    {
-                        $chart = 1;
-                        ?>
-                        <td class="bltop">  </td>
-    <?php } ?>
-                    <td class="bltop" colspan='3'> 
-					
-					POS.: <strong><?php echo $poss; ?></strong> <strong>OUT OF: <?php echo count($mks); ?></strong>
-					
-					</td>
-                    <td class="">  </td>
-                </tr>
-            </tbody>
-        </table>
-        <?php
-        $ex_string = implode('_', $exlist);
-        if ($chart)
+        if (isset($st->cl))
         {
-            ?>
-           
-            <div class="row">
-                <div class="col-md-2">&nbsp;</div>
-                <div class="col-md-8"> <div id="pxbar<?php echo $ij; ?>" class="grapdh" style="width:82%; height:200px;"></div></div>
-             </div>
-            <?php
+            $crr = isset($this->classes[$st->cl->class]) ? $this->classes[$st->cl->class] : '';
+            $ctr = isset($streams[$st->cl->stream]) ? $streams[$st->cl->stream] : '';
+            $cst = $crr . $ctr;
         }
-        $conduct = '';
-        $tr = '';
-        $hr = '';
-        if ($xterm && $xyear)
-        {
-            $rremarks = $this->worker->get_joint_remarks($xterm, $xyear, $student, $ex_string);
-            $conduct = empty($rremarks) ? '' : $rremarks->conduct;
-            $tr = empty($rremarks) ? '' : $rremarks->tr_remarks;
-            $hr = empty($rremarks) ? '' : $rremarks->ht_remarks;
-        }
+        $p = (object) $pyl;
         ?>
-        <div>						 
-            <div class="foo"> <br> </div>
-            <div class="foo col-sm-12">
-                <strong><span ><b style="text-decoration:underline">Next Term Commences on:</b> &nbsp;&nbsp; _______________________ &nbsp;&nbsp; </span></strong>
-                <span  ><strong>&nbsp;&nbsp; Attendance:&nbsp;&nbsp; ___________ &nbsp;&nbsp; Out of  &nbsp;&nbsp; ____________ &nbsp;&nbsp; Sessions</strong></span>
-                <br>
-            </div>
-
-            <div class="foo col-sm-12">
-                <strong><span style="text-decoration:underline">Student's Conduct:</span></strong>
-                <br>
-                <span class="col-sm-12">
-                    <span class="editable conduct<?php echo $student; ?> editable-wrap" e-style="width:100%;"><?php echo $conduct; ?></span>
-                </span>
-            </div>
-            <div class="foo col-sm-12">
-                <strong><span style="text-decoration:underline">Class Teacher's Comment:</span></strong>
-                <br>
-                <span class="col-sm-12">
-                    <span class="editable teacher<?php echo $student; ?> editable-wrap" ><?php echo $tr; ?></span>
-                </span>
-            </div>
-            <div class="foo col-sm-12">
-                <strong>
-                    <span style="text-decoration:underline" >Principal's Comment:</span>
-                </strong>
-                <br/>
-                <span class="editable ht<?php echo $student; ?> editable-wrap" e-style="width:100%"><?php echo $hr; ?>
+        <div class="invoice">
+            <div class="row row-fluid">
+                <div class="row-fluid center">
                     <?php
-                    $file = FCPATH . '/uploads/files/headteacher-signature.jpg';
+                    $file = FCPATH . '/uploads/joint-header.png';
                     if (file_exists($file))
                     {
                         ?>
-                        <img class = "pull-right" src = "<?php echo base_url('uploads/files/headteacher-signature.jpg'); ?>" width = "200" height = "80" class = "img-polaroid" >
-    <?php } ?>
+                        <span class="col-sm-2" style="text-align:center"></span>
+                        <span class="col-sm-8" style="text-align:center">
+                            <img src="<?php echo base_url('uploads/joint-header.png'); ?>" class="center"    />
+                        </span>
+                        <span class="col-sm-2" style="text-align:center">
+                            <?php
+                            if (!empty($st->photo)):
+                                $passport = $this->ion_auth->passport($st->photo);
+                                if ($passport)
+                                {
+                                    ?> 
+                                    <image src="<?php echo base_url('uploads/' . $passport->fpath . '/' . $passport->filename); ?>" width="100" height="100" class="img-polaroid" style="align:left">
+                                <?php } ?>	
+
+                            <?php else: ?>   
+                                <?php echo theme_image("thumb.png", array('class' => "img-polaroid", 'style' => "width:100px; height:100px; align:left")); ?>
+                            <?php endif; ?>
+                        </span>
+                        <?php
+                    }
+                    else
+                    {
+                        ?>
+                        <div class="col-sm-2"></div>
+                        <div class="col-sm-8">
+                            <span class="" style="text-align:center">
+                                <img src="<?php echo base_url('uploads/files/' . $this->school->document); ?>" class="center"  width="120" height="120" />
+                            </span>
+                            <h3>
+                                <span style="text-align:center !important;font-size:15px;"><?php echo strtoupper($this->school->school); ?></span>
+                            </h3>
+                            <small style="text-align:center !important;font-size:12px; line-height:2px;">
+                                <?php
+                                if (!empty($this->school->tel))
+                                {
+                                    echo $this->school->postal_addr . ' Tel:' . $this->school->tel . ' ' . $this->school->cell;
+                                }
+                                else
+                                {
+                                    echo $this->school->postal_addr . ' Cell:' . $this->school->cell;
+                                }
+                                ?>
+                            </small>
+                            <h3>
+                                <span style="text-align:center !important;font-size:13px; font-weight:700; border:double; padding:5px;">MOTTO: <?php echo strtoupper($this->school->motto); ?></span>
+                            </h3>
+                            <small style="text-align:center !important;font-size:20px; line-height:2px; border-bottom:2px solid  #ccc;">Student Performance Terminal Report</small>
+                        </div>		
+                        <div class="col-sm-2">
+                            <?php
+                            if (!empty($st->photo)):
+                                $passport = $this->ion_auth->passport($st->photo);
+                                if ($passport)
+                                {
+                                    ?> 
+                                    <image src="<?php echo base_url('uploads/' . $passport->fpath . '/' . $passport->filename); ?>" width="100" height="100" class="img-polaroid" style="align:left">
+                                <?php } ?>	
+
+                            <?php else: ?>   
+                                <?php echo theme_image("thumb.png", array('class' => "img-polaroid", 'style' => "width:100px; height:100px; align:left")); ?>
+                            <?php endif; ?>
+                        </div>	
+                    <?php } ?>                              
+                </div>
+
+
+                <table class="topdets">
+                    <tr>
+                        <td><strong>Name: </strong>
+                            <abbr><?php echo $st->first_name . ' ' . $st->last_name; ?>  </abbr>
+                        </td>
+                        <td><strong> Age: </strong> <?php echo (!empty($st->dob) && $st->dob > 10000) ? $this->dates->createFromTimeStamp($st->dob)->diffInYears() : '-'; ?> </td>
+                        <td><strong> Class: </strong> <abbr><?php echo $st->cl->name; ?></abbr></td>
+                        <td><strong>ADM No : </strong>
+                            <abbr><?php echo isset($st->old_adm_no) && !empty($st->old_adm_no) ? $st->old_adm_no : $st->admission_number; ?></abbr>
+                            <span class="hidden">  &nbsp;&nbsp;&nbsp; <strong>KCPE Marks:  </strong><?php echo $st->entry_marks; ?></span>
+                        </td>
+                        <td> <strong>Class Teacher : </strong>
+                            <abbr>
+                                <?php
+                                $cc = '';
+                                if (!empty($st->cl->class) && !empty($st->cl->class_teacher))
+                                {
+                                    $ctc = $this->ion_auth->get_user($st->cl->class_teacher);
+                                    if ($ctc)
+                                    {
+                                        $cc = $ctc->first_name . ' ' . $ctc->last_name;
+                                    }
+                                }
+                                echo $cc;
+                                ?>
+                            </abbr>
+                        </td>
+                    </tr>
+                </table>
+                <div class="row">
+                    <div class="hidden">
+                        <?php
+                        if (!empty($st->pass))
+                        {/*
+                        ?>
+                        <img src="<?php echo base_url('uploads/' . $st->pass->fpath . '/' . $st->pass->filename); ?>" alt="">
+                        <?php */
+                        }
+                        ?>
+                    </div>                   
+                </div>
+            </div>
+            <br/>
+            <table class="tablex table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th><b>Subject</b></th>
+                        <?php
+                        $tf = 0;
+
+                        foreach ($list as $l)
+                        {
+                            $tf++;
+                            $pref = str_ireplace('Exams', '', $l->title);
+                            $pref = str_ireplace('Exam', '', $pref);
+                            $tt = trim($pref) . ' ' . $l->term . ' ' . $l->year;
+                            ?>
+                            <th><b><?php echo $tt; ?></b></th>
+                            <?php
+                        }
+                        ?>
+                        <?php
+                        if (count($list) > 1)
+                        {
+                            ?>
+                            <th><b>Average.</b></th>
+                        <?php } ?>
+                        <th><b>Class AVG.</b></th>
+                        <th><b>Grade</b></th>
+                        <th><b>Remarks</b></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $is_opt = array();
+                    $i = 0;
+                    $grading = 0;
+                    foreach ($p->res as $sub => $spms)
+                    {
+                        $sp = (object) $spms;
+
+                        $i++;
+                        $grading = $sp->grading;
+
+                        $dr = 0;
+                        if (isset($sp->units) && !empty($sp->units))
+                        {
+                            if ($show)
+                            {
+                                foreach ($sp->units as $uxid => $uxres)
+                                {
+                                    //these are sub units
+                                    if ($uxid == '-')
+                                    {
+                                        continue;
+                                    }
+                                    ?>
+                                    <tr>
+                                        <td class="text-center"></td>
+                                        <td><?php echo $uxid; ?></b></td>
+                                        <?php
+                                        foreach ($uxres as $e)
+                                        {
+                                            $rs = (object) $xres;
+                                            ?>
+                                            <td><small><?php echo $e; ?></small></td>
+                                        <?php } ?>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <?php
+                                }
+                            }
+                            ?>
+                            <tr>
+                                <td class="text-center"><?php echo $i; ?></td>
+                                <td><b><?php echo $sp->subject; ?></b></td>
+                                <?php
+                                //These are exams with sub units
+                                $k = 0;
+                                foreach ($sp->maks as $xid => $xres)
+                                {
+                                    $k++;
+                                    $rs = (object) $xres;
+                                    if ($rs->opt == 1 && $k == 1)//insert once only
+                                    {
+                                        $is_opt[] = $rs->marks;
+                                    }
+                                    if ($rank > 1 && in_array($rs->sub_id, $ranked[$student][$xid]['dropped']))
+                                    {
+                                        $dr = 1;
+                                    }
+                                    ?>
+                                    <td class="text-right <?php echo $dr ? 'dropped' : ''; ?>"><b><?php echo $rs->marks; ?>(<?php $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
+                    echo isset($rmks->grade) && isset($grade_title[$rmks->grade]) ? $grade_title[$rmks->grade] : '';
+                                    ?>)</b></td>
+                                    <?php
+                                    if (count($list) == 1)
+                                    {
+                                        break;  //hide avg column if single exam
+                                    }
+                                }
+                                ?>
+                                <td style="text-align:center"><?php echo isset($class_avg[$sp->sub_id]) ? $class_avg[$sp->sub_id] : '-'; ?></td>
+                                <td style="text-align:center">
+                                    <strong>
+                                        <?php
+                                        $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
+                                        echo isset($rmks->grade) && isset($grade_title[$rmks->grade]) ? $grade_title[$rmks->grade] : '';
+                                        ?> 
+                                    </strong> 
+                                </td>
+                                <td style="text-align:center"><strong> <?php
+                                        $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
+                                        echo isset($rmks->grade) && isset($grades[$rmks->grade]) ? $grades[$rmks->grade] : '';
+                                        ?> </strong> 
+                                </td>
+                            </tr>
+                            <?php
+                        }
+                        else
+                        {
+                            //These are exams without sub units
+                            ?>
+                            <tr>
+                                <td class="text-center"><?php echo $i; ?></td>
+                                <td><b><?php echo $sp->subject; ?></b></td>
+                                <?php
+                                $k = 0;
+                                foreach ($sp->maks as $xid => $xres)
+                                {
+                                    $k++;
+                                    $rs = (object) $xres;
+                                    if ($rs->opt == 1 && $k == 1)//insert once only
+                                    {
+                                        $is_opt[] = $rs->marks;
+                                    }
+
+
+                                    if ($rank > 1 && $xid != 999999 && in_array($rs->sub_id, $ranked[$student][$xid]['dropped']))
+                                    {
+                                        $dr = 1;
+                                    }
+                                    ?>
+                                    <td class="text-right <?php echo $dr ? 'dropped' : ''; ?>"><b><?php echo $rs->marks; ?>
+                                            (<?php $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
+                                    echo isset($rmks->grade) && isset($grade_title[$rmks->grade]) ? $grade_title[$rmks->grade] : '';
+                                    ?>)</b>
+                                    </td>
+                                    <?php
+                                    if (count($list) == 1)
+                                    {
+                                        break;
+                                    }
+                                }
+                                ?>
+                                <td style="text-align:center"><?php echo isset($class_avg[$sp->sub_id]) ? $class_avg[$sp->sub_id] : '-'; ?></td>
+                                <td style="text-align:center">
+                                    <strong> 
+                                        <?php
+                                        $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
+                                        echo isset($rmks->grade) && isset($grade_title[$rmks->grade]) ? $grade_title[$rmks->grade] : '';
+                                        ?> 
+                                    </strong>
+                                </td>
+                                <td style="text-align:center">
+                                    <strong> <?php
+                                        $rmks = $this->ion_auth->remarks($sp->grading, $rs->marks);
+                                        echo isset($rmks->grade) && isset($grades[$rmks->grade]) ? $grades[$rmks->grade] : '';
+                                        ?> 
+                                    </strong> 
+                                </td>
+                            </tr>
+                            <?php
+                        }
+                    }
+                    ?>
+                    <tr class="rttbx">
+                        <td class="text-center"> </td>
+                        <td> </td>
+                        <?php
+                        foreach ($p->tots as $gd)
+                        {
+                            ?>
+                            <td class="text-right"></td>  
+                            <?php
+                        }
+                        if (count($list) > 1)
+                        {
+                            ?>
+                            <td class="">  </td>
+                        <?php } ?>
+                        <td class="">  </td>
+                        <?php
+                        if (count($this->input->post('exams')))
+                        {
+                            echo '<td colspan="' . (count($this->input->post('exams')) - 2) . '" class="bltop"> </td>';
+                        }
+                        ?>
+                    </tr>
+                    <tr class="rttbx">
+                        <td class="text-center"> </td>
+                        <td> <strong> Class Average  </strong></td>
+                        <?php
+                        $iii = 0;
+                        $ix = 0;
+                        foreach ($tot_avg as $gd)
+                        {
+                            $iii++;
+                            ?>
+                            <td class="text-right"><?php echo round($gd / (count($p->res) - count($is_opt) )); ?></td> 
+                            <?php
+                            if (count($list) == 1)
+                            {
+                                $ix++;
+                                ?>
+                                <td class="">  </td>
+                                <?php
+                                break;
+                            }
+                            ?>
+                        <?php } ?>
+                        <?php
+                        if (count($list) > 1)
+                        {
+                            ?>
+                            <td>  </td>
+                        <?php } ?>
+
+
+                        <?php
+                        if (count($this->input->post('exams')))
+                        {
+                            echo '<td colspan="' . (count($this->input->post('exams')) - 2) . '" class="bltop"> </td>';
+                        }
+                        ?>
+                    </tr>                   
+                    <tr class="rttbx">
+                        <td class="text-center"> </td>
+                        <td> <strong> Student Average  </strong></td>
+                        <?php
+                        $average = 0;
+                        foreach ($p->tots as $tid => $gd)
+                        {
+                            $average = $rank > 1 ? round($ranked[$student][$tid]['total_ranked'] / 7, 2) : round($gd / (count($p->res) - count($is_opt) )); //access the value of avg for average column by overwriting until the end
+                            ?>
+                            <td class="text-right">
+                                <?php
+                                $all_mkrs = $rank > 1 ? round($ranked[$student][$tid]['total_ranked'] / 7, 2) : round($gd / (count($p->res) - count($is_opt) ));
+                                echo $all_mkrs;
+                                ?>
+                                (<?php
+                                $avg_rw = $this->ion_auth->remarks($grading, $all_mkrs);
+                                $avg_grade = isset($avg_rw->grade) && isset($grade_title[$avg_rw->grade]) ? $grade_title[$avg_rw->grade] : '';
+
+                                echo $avg_grade;
+                                ?>)
+                            </td>
+                            <?php
+                            if (count($list) == 1)
+                            {
+                                ?>
+                                <td class="">  </td>
+                                <?php
+                                break;
+                            }
+                            ?>
+                            <?php } ?>
+                        <td class="text-center">
+                            <?php
+                            $avg_rw = $this->ion_auth->remarks($grading, $average);
+                            $avg_grade = isset($avg_rw->grade) && isset($grade_title[$avg_rw->grade]) ? $grade_title[$avg_rw->grade] : '';
+                            if (empty($avg_grade))
+                            {
+                                $avg_grade = ' - ';
+                            }
+                            //echo $avg_grade;
+                            ?>
+                        </td>
+                        <td></td>
+                        <?php
+                        if (count($list) > 1)
+                        {
+                            ?>
+                            <td class="">  </td>
+                <?php } ?>
+                    </tr>
+                    <tr class="rttbx">
+                        <td class="text-center"> </td>
+                        <td> <strong> Total </strong></td>
+                        <?php
+                        $t = 0;
+                        foreach ($p->tots as $xid => $gd)
+                        {
+                            $t++;
+                            ?>
+                            <td class="text-right">
+                                <?php
+                                if (count($list) == 1)
+                                {
+                                    if ($t == 1)
+                                    {
+                                        echo $rank > 1 ? $ranked[$student][$xid]['total_ranked'] : $gd;
+                                    }
+                                }
+                                else
+                                {
+                                    echo $rank > 1 ? $ranked[$student][$xid]['total_ranked'] : $gd;
+                                }
+                                ?></td>  
+                        <?php } ?>
+                        <?php
+                        if (count($list) > 1)
+                        {
+                            ?>
+                            <td class="">  </td>
+                        <?php } ?>
+                        <td class="">  </td>
+                        <?php
+                        if (count($this->input->post('exams')))
+                        {
+                            echo '<td colspan="' . (count($this->input->post('exams')) - 2) . '" class="bltop"> </td>';
+                        }
+                        ?>
+                    </tr>
+                    <tr>
+                        <td> </td>
+                        <?php
+                        if (count($this->input->post('exams')))
+                        {
+                            echo '<td colspan="' . count($this->input->post('exams')) . '" class="bltop"> </td>';
+                        }
+
+                        if ($ij > 1)
+                        {
+                            $prevk = $mks[$keys[array_search($student, $keys) - 1]];
+                            $pxvg = $prevk['avg'];
+
+                            if ($pxvg == $p->avg) //if previous == current, maintain pos
+                            {
+                                $ties[] = $p->avg;
+                                $poss = $ij - (count($ties) );
+                            }
+                            else
+                            {
+                                if (!empty($ties))
+                                {
+                                    // $ij = $ij- count($ties); //uncomment to disable skipping the tied positions
+                                }
+                                $ties = array(); //clear 
+                                $poss = $ij;
+                            }
+                        }
+                        else
+                        {
+                            $poss = $ij;
+                            $pxvg = '';
+                        }
+                        ?>
+                        <?php
+                        if (count($list) > 1)
+                        {
+                            $chart = 1;
+                            ?>
+                            <td class="bltop">  </td>
+                        <?php } ?>
+                        <td class="bltop" colspan='3'> 
+                        
+                        POS.: <strong><?php echo $poss; ?></strong> <strong>OUT OF: <?php echo count($mks); ?></strong>
+                        
+                        </td>
+                        <td class="">  </td>
+                    </tr>
+                </tbody>
+            </table>
+            <?php
+            $ex_string = implode('_', $exlist);
+            if ($chart)
+            {
+                ?>
+            
+                <div class="row">
+                    <div class="col-md-2">&nbsp;</div>
+                    <div class="col-md-8"> <div id="pxbar<?php echo $ij; ?>" class="grapdh" style="width:82%; height:200px;"></div></div>
+                </div>
+                <?php
+            }
+            $conduct = '';
+            $tr = '';
+            $hr = '';
+            if ($xterm && $xyear)
+            {
+                $rremarks = $this->worker->get_joint_remarks($xterm, $xyear, $student, $ex_string);
+                $conduct = empty($rremarks) ? '' : $rremarks->conduct;
+                $tr = empty($rremarks) ? '' : $rremarks->tr_remarks;
+                $hr = empty($rremarks) ? '' : $rremarks->ht_remarks;
+            }
+            ?>
+            <div>						 
+                <div class="foo"> <br> </div>
+                <div class="foo col-sm-12">
+                    <strong><span ><b style="text-decoration:underline">Next Term Commences on:</b> &nbsp;&nbsp; _______________________ &nbsp;&nbsp; </span></strong>
+                    <span  ><strong>&nbsp;&nbsp; Attendance:&nbsp;&nbsp; ___________ &nbsp;&nbsp; Out of  &nbsp;&nbsp; ____________ &nbsp;&nbsp; Sessions</strong></span>
+                    <br>
+                </div>
+
+                <div class="foo col-sm-12">
+                    <strong><span style="text-decoration:underline">Student's Conduct:</span></strong>
+                    <br>
+                    <span class="col-sm-12">
+                        <span class="editable conduct<?php echo $student; ?> editable-wrap" e-style="width:100%;"><?php echo $conduct; ?></span>
+                    </span>
+                </div>
+                <div class="foo col-sm-12">
+                    <strong><span style="text-decoration:underline">Class Teacher's Comment:</span></strong>
+                    <br>
+                    <span class="col-sm-12">
+                        <span class="editable teacher<?php echo $student; ?> editable-wrap" ><?php echo $tr; ?></span>
+                    </span>
+                </div>
+                <div class="foo col-sm-12">
+                    <strong>
+                        <span style="text-decoration:underline" >Principal's Comment:</span>
+                    </strong>
+                    <br/>
+                    <span class="editable ht<?php echo $student; ?> editable-wrap" e-style="width:100%"><?php echo $hr; ?>
+                        <?php
+                        $file = FCPATH . '/uploads/files/headteacher-signature.jpg';
+                        if (file_exists($file))
+                        {
+                            ?>
+                            <img class = "pull-right" src = "<?php echo base_url('uploads/files/headteacher-signature.jpg'); ?>" width = "200" height = "80" class = "img-polaroid" >
+        <?php } ?>
+                    </span>
+                </div>
+                
+                <!--- EFFORT ---->
+                
+            </div>
+
+            <div class="clearfix" style="clear:both"></div>
+            <div class="center" style="border-top:1px solid #ccc">		
+                <span class="center" style="font-size:0.8em !important;text-align:center !important;">
+                    This document was produced without any alteration. For any question please contact our office 
+                    <?php
+                    echo ' Tel:' . $this->school->tel . ' ' . $this->school->cell;
+                    ?>
                 </span>
             </div>
-			
-			<!--- EFFORT ---->
-			
+            <div class="margin"></div>            
         </div>
-
-        <div class="clearfix" style="clear:both"></div>
-        <div class="center" style="border-top:1px solid #ccc">		
-            <span class="center" style="font-size:0.8em !important;text-align:center !important;">
-                This document was produced without any alteration. For any question please contact our office 
-                <?php
-                echo ' Tel:' . $this->school->tel . ' ' . $this->school->cell;
-                ?>
-            </span>
-        </div>
-        <div class="margin"></div>            
-    </div>
-    <?php
-    $scores = array();
-    foreach ($p->tots as $tid => $gd)
-    {
-        if ($tid == '999999')
+        <?php
+        $scores = array();
+        foreach ($p->tots as $tid => $gd)
         {
-            continue;
-        }
-        $roxx = $rank > 1 ? $ranked[$student][$tid]['total_ranked'] : $gd;
-        $rtt = (object) $titles[$tid];
-        $rm_title = str_replace('EXAMS', '', $rtt->title);
-        $title = str_replace('EXAM', '', $rm_title);
-        $scores[] = array('marks' => $roxx, 'title' => $title);
-    }
-
-    if ($chart)
-    {
-        ?>
-        <script>
-            $(document).ready(
-                    function ()
-                    {
-                        Morris.Bar({
-                            element: 'pxbar<?php echo $ij; ?>',
-                            data: <?php echo json_encode($scores); ?>,
-                            xkey: 'title',
-                            ykeys: ['marks'],
-                            labels: ['Marks'],
-                            barSizeRatio: 0.55,
-                            barSize: 50,
-                            xLabelAngle: 35,
-                            hideHover: 'auto',
-                            grid: true
-                        });
-                    });
-        </script>
-    <?php } ?>
-    <?php
-    if ($xterm && $xyear)
-    {
-        ?>
-        <script type="text/javascript">
-            $(function () {
-                //editables on first profile page
-                $.fn.editable.defaults.mode = 'inline';
-                $.fn.editableform.loading = "<div class='editableform-loading'><i class='light-blue glyphicon glyphicon-2x glyphicon glyphicon-spinner glyphicon glyphicon-spin'></i></div>";
-                $.fn.editableform.buttons = '<button type="submit" class="btn btn-info editable-submit" title="Submit"><i class="glyphicon glyphicon-ok glyphicon glyphicon-white"></i></button>' +
-                        '<button type="button" class="btn btn-danger editable-cancel" title="Cancel"><i class="glyphicon glyphicon-remove"></i></button>';
-                $('.conduct<?php echo $student; ?>').editable({
-                    type: 'textarea',
-                    title: 'Enter Remarks',
-                    pk: <?php echo $student; ?>,
-                    url: '<?php echo base_url('admin/reports/save_remarks/' . $xterm . '/' . $xyear . '/' . $ex_string . '/1'); ?>',
-                    emptytext: '----------------------------------------------------',
-                    success: function (response, newValue)
-                    {
-                        notify('Report Form', 'Remarks Added: ' + newValue);
-                    }
-                });
-                $('.teacher<?php echo $student; ?>').editable({
-                    type: 'textarea',
-                    title: 'Teacher Remarks',
-                    pk: <?php echo $student; ?>,
-                    url: '<?php echo base_url('admin/reports/save_remarks/' . $xterm . '/' . $xyear . '/' . $ex_string . '/2'); ?>',
-                    emptytext: '----------------------------------------------------',
-                    success: function (response, newValue)
-                    {
-                        notify('Report Form', 'Remarks: ' + newValue);
-                    }
-                });
-                $('.ht<?php echo $student; ?>').editable({
-                    type: 'textarea',
-                    title: 'Headteacher Remarks',
-                    pk: <?php echo $student; ?>,
-                    url: '<?php echo base_url('admin/reports/save_remarks/' . $xterm . '/' . $xyear . '/' . $ex_string . '/3'); ?>',
-                    emptytext: '----------------------------------------------------',
-                    success: function (response, newValue)
-                    {
-                        notify('Report Form', 'Remarks: ' + newValue);
-                    }
-                });
-
-            });
-        </script>
-    <?php } ?>
-    <div class="page-break"></div>
-    <?php
-}
-?>
-<script>
-    $(document).ready(
-            function ()
+            if ($tid == '999999')
             {
-                $(".tsel").select2({'placeholder': 'Please Select', 'width': '200px'});
-                $(".tsel").on("change", function (e)
-                {
-                    notify('Select', 'Value changed: ' + e.added.text);
+                continue;
+            }
+            $roxx = $rank > 1 ? $ranked[$student][$tid]['total_ranked'] : $gd;
+            $rtt = (object) $titles[$tid];
+            $rm_title = str_replace('EXAMS', '', $rtt->title);
+            $title = str_replace('EXAM', '', $rm_title);
+            $scores[] = array('marks' => $roxx, 'title' => $title);
+        }
+
+        if ($chart)
+        {
+            ?>
+            <script>
+                $(document).ready(
+                        function ()
+                        {
+                            Morris.Bar({
+                                element: 'pxbar<?php echo $ij; ?>',
+                                data: <?php echo json_encode($scores); ?>,
+                                xkey: 'title',
+                                ykeys: ['marks'],
+                                labels: ['Marks'],
+                                barSizeRatio: 0.55,
+                                barSize: 50,
+                                xLabelAngle: 35,
+                                hideHover: 'auto',
+                                grid: true
+                            });
+                        });
+            </script>
+        <?php } ?>
+        <?php
+        if ($xterm && $xyear)
+        {
+            ?>
+            <script type="text/javascript">
+                $(function () {
+                    //editables on first profile page
+                    $.fn.editable.defaults.mode = 'inline';
+                    $.fn.editableform.loading = "<div class='editableform-loading'><i class='light-blue glyphicon glyphicon-2x glyphicon glyphicon-spinner glyphicon glyphicon-spin'></i></div>";
+                    $.fn.editableform.buttons = '<button type="submit" class="btn btn-info editable-submit" title="Submit"><i class="glyphicon glyphicon-ok glyphicon glyphicon-white"></i></button>' +
+                            '<button type="button" class="btn btn-danger editable-cancel" title="Cancel"><i class="glyphicon glyphicon-remove"></i></button>';
+                    $('.conduct<?php echo $student; ?>').editable({
+                        type: 'textarea',
+                        title: 'Enter Remarks',
+                        pk: <?php echo $student; ?>,
+                        url: '<?php echo base_url('admin/reports/save_remarks/' . $xterm . '/' . $xyear . '/' . $ex_string . '/1'); ?>',
+                        emptytext: '----------------------------------------------------',
+                        success: function (response, newValue)
+                        {
+                            notify('Report Form', 'Remarks Added: ' + newValue);
+                        }
+                    });
+                    $('.teacher<?php echo $student; ?>').editable({
+                        type: 'textarea',
+                        title: 'Teacher Remarks',
+                        pk: <?php echo $student; ?>,
+                        url: '<?php echo base_url('admin/reports/save_remarks/' . $xterm . '/' . $xyear . '/' . $ex_string . '/2'); ?>',
+                        emptytext: '----------------------------------------------------',
+                        success: function (response, newValue)
+                        {
+                            notify('Report Form', 'Remarks: ' + newValue);
+                        }
+                    });
+                    $('.ht<?php echo $student; ?>').editable({
+                        type: 'textarea',
+                        title: 'Headteacher Remarks',
+                        pk: <?php echo $student; ?>,
+                        url: '<?php echo base_url('admin/reports/save_remarks/' . $xterm . '/' . $xyear . '/' . $ex_string . '/3'); ?>',
+                        emptytext: '----------------------------------------------------',
+                        success: function (response, newValue)
+                        {
+                            notify('Report Form', 'Remarks: ' + newValue);
+                        }
+                    });
+
                 });
-                $(".fsel").select2({'placeholder': 'Please Select', 'width': '400px'});
-                $(".fsel").on("change", function (e)
+            </script>
+        <?php } ?>
+        <div class="page-break"></div>
+        <?php
+    }
+    ?>
+    <script>
+        $(document).ready(
+                function ()
                 {
-                    notify('Select', 'Value changed: ' + e.added.text);
+                    $(".tsel").select2({'placeholder': 'Please Select', 'width': '200px'});
+                    $(".tsel").on("change", function (e)
+                    {
+                        notify('Select', 'Value changed: ' + e.added.text);
+                    });
+                    $(".fsel").select2({'placeholder': 'Please Select', 'width': '400px'});
+                    $(".fsel").on("change", function (e)
+                    {
+                        notify('Select', 'Value changed: ' + e.added.text);
+                    });
                 });
-            });
-</script>
+    </script>
 
 <style>
     .xxd, .editableform textarea {
