@@ -1,3 +1,4 @@
+<?php $settings = $this->ion_auth->settings(); ?>
 <div class="head">
     <div class="icon"></div>
     <h2><?php echo $thread->title . ' - (Term ' . $thread->term . ' ' . $thread->year . ')' ?></h2>
@@ -59,17 +60,180 @@ foreach ($this->classlist as $ssid => $s) {
 <?php
 if (isset($results)) {
 
-    // echo "<pre>";
+
     // print_r($results);
+    // print_r($compareresults);
     // print_r($resultpositions);
-    // echo "</pre>";
+    $subjects = $this->igcse_m->populate('subjects','id','name');
+   
 
     foreach ($results as $key => $result) {
-        # code...  
+        $stu = $this->worker->get_student($result->student);
+
+        foreach ($resultpositions as $keeey => $posi) {
+
+            if ($keeey === 'ovrpositions') {
+                foreach ($posi as $posikey => $pos) {
+                    if ($posikey == $key) {
+
+                        $ovrpos = $pos;
+                        $ovroutof = count($posi);
+                    }
+                }
+            } elseif ($keeey === 'strpositions') {
+                foreach ($posi as $posikey => $pos) {
+                    if ($posikey == $key) {
+
+                        $strpos = $pos;
+                        $stroutof = count($posi);
+                    }
+                }
+            }
+        }
+
+        $subscores = $this->igcse_m->student_scores($thread->id,$result->student);
+
 ?>
         <div class="invoice">
             <!-- Transcript Start -->
-                
+            <div class="row" id="headerdiv">
+                <div class="col-md-6 col-lg-6">
+                    <img src="<?php echo base_url('uploads/files/' . $settings->document); ?>" width="80" height="80" />
+                </div>
+                <div class="col-md-6 col-lg-6 text-right">
+                    <h5 class="blue-text"><b><?php echo strtoupper($this->school->school) ?></b></h5>
+                    <h6><b><?php echo strtoupper($this->school->postal_addr) ?></b></h6>
+                    <h6><b><?php echo $this->school->tel ?></b></h6>
+                    <h6><b><?php echo $this->school->email ?></b></h6>
+                </div>
+            </div>
+
+            <h5 class="text-center blue-bg">ACADEMIC TRANSCRIPT FOR - <?php echo $this->classes[$result->class_group] ?> - <?php echo $thread->title ?> - (<?php echo $thread->year ?>/Term <?php echo $thread->term ?>)</h5>
+
+            <div class="row" id="studentsdiv">
+                <div class="col-md-3 col-lg-3">
+                    <?php
+                    $passport = $this->admission_m->passport($stu->photo);
+                    $fake = base_url('uploads/files/member.png');
+
+                    if (count($passport) !== 0) {
+                        $path = base_url('uploads/' . $passport->fpath . '/' . $passport->filename);
+                    }
+
+                    ?>
+                    <img src="<?php echo $fake ?>" alt="Student Profile" class="img-fluid img-thumbnail">
+                </div>
+                <div class="col-md-3 col-lg-3">
+                    <h5><b>Name : <?php echo ucwords($stu->first_name . ' ' . $stu->last_name) ?></b></h5>
+                    <h5><b>ADM NO : <?php echo $stu->admission_number ?></b></h5>
+                    <h5><b>CLASS : <?php echo $this->streams[$stu->class] ?></b></h5>
+                </div>
+                <div class="col-md-6 col-lg-6">
+                    <h6 class="text-center"><b>Student vs Class Perfomance subjectwise</b></h6>
+                </div>
+            </div>
+
+            <div class="row mb-2" id="positionsdiv">
+                <div class="col-md-3 col-lg-3">
+                    <div style="width: 70%;">
+                        <h6 class="text-center"><b>Mean</b></h6>
+                        <h6 class="text-center"><b><?php echo  $result->mean_grade ?>|<?php echo  $result->mean_mark ?>%</b></h6>
+                    </div>
+                    <div style="width: 30%;">
+
+                    </div>
+                </div>
+                <div class="col-md-2 col-lg-2">
+                    <div style="width: 70%;">
+                        <h6 class="text-center"><b>Total</b></h6>
+                        <h6 class="text-center"><b><?php echo  $result->total ?>/<?php echo  $result->outof ?></b></h6>
+                    </div>
+                    <div style="width: 30%;">
+
+                    </div>
+                </div>
+                <div class="col-md-2 col-lg-2">
+                    <div style="width: 70%;">
+                        <h6 class="text-center"><b>Total Points</b></h6>
+                        <h6 class="text-center"><b><?php echo  $result->total ?>/<?php echo  $result->outof ?></b></h6>
+                    </div>
+                    <div style="width: 30%;">
+
+                    </div>
+                </div>
+                <div class="col-md-2 col-lg-2">
+                    <div style="width: 70%;">
+                        <h6 class="text-center"><b>Overall Position</b></h6>
+                        <h6 class="text-center"><b><?php echo $ovrpos ?>/<?php echo $ovroutof ?></b></h6>
+                    </div>
+                    <div style="width: 30%;">
+
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-3">
+                    <div style="width: 70%;">
+                        <h6 class="text-center"><b>Stream Position</b></h6>
+                        <h6 class="text-center"><b><?php echo $strpos ?>/<?php echo $stroutof ?></b></h6>
+                    </div>
+                    <div style="width: 30%;">
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" style="margin-top: 10px;">
+                <div class="col-lg-12 col-md-12">
+                    <table class="table" cellpadding="0" cellspacing="0" width="100%">
+                        <thead>
+                            <th>SUBJECTS</th>
+                            <th>MARKS</th>
+                            <th>DEV.</th>
+                            <th>GRADE</th>
+                            <th>CLASS RANK</th>
+                            <th>STREAM RANK</th>
+                            <th>COMMENT</th>
+                            <th>TEACHER</th>
+                        </thead>
+                        <tbody>
+                            <?php 
+                                foreach ($subscores as $key => $score) {
+                            ?>
+                                <tr>
+                                    <td><?php echo $subjects[$score->subject] ?></td>
+                                    <td><?php echo $score->total ?>%</td>
+                                    <td></td>
+                                    <td><?php echo $score->grade ?></td>
+                                    <td><?php echo $score->ovr_rank ?></td>
+                                    <td><?php echo $score->stream_rank ?></td>
+                                    <td><?php echo $score->comment ?></td>
+                                    <td></td>
+                                </tr>
+                            <?php } ?>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+
+            <div class="row" id="footerdiv">
+                <div class="col-lg-6 col-md-6">
+                    <h6><b>Perfomance Over Time</b></h6>
+                </div>
+                <div class="col-lg-6 col-md-6">
+                    <table style="width: 100%;">
+                        <tr>
+                            <th style="border: none;">Remarks</th>
+                            <th style="border: none;">Signature</th>
+                        </tr>
+                        <tbody>
+                            <tr>
+                                <td style="border: none;"></td>
+                                <td style="border: none;"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <!-- Transcript Start -->
         </div>
         <div class="page-break"></div>
@@ -98,6 +262,20 @@ if (isset($results)) {
 </script>
 
 <style>
+    .blue-text {
+        color: #00aaff;
+    }
+
+    .blue-bg {
+        background-color: #00aaff;
+        color: white;
+        padding: 8px;
+    }
+
+    #positionsdiv {
+        background-color: #e6f7ff;
+    }
+
     .xxd,
     .editableform textarea {
         height: 150px !important;
@@ -209,6 +387,75 @@ if (isset($results)) {
     @media print {
         .invoice {
             padding: 20px !important;
+        }
+
+        #headerdiv::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        #headerdiv .col-md-6,
+        #headerdiv .col-lg-6 {
+            float: left;
+            width: 50%;
+        }
+
+        #studentsdiv::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        #studentsdiv .col-md-3,
+        #studentsdiv .col-lg-3,
+        #studentsdiv .col-md-6,
+        #studentsdiv .col-lg-6 {
+            float: left;
+        }
+
+        #studentsdiv .col-md-3,
+        #studentsdiv .col-lg-3 {
+            width: 25%;
+        }
+
+        #studentsdiv .col-md-6,
+        #studentsdiv .col-lg-6 {
+            width: 50%;
+        }
+
+        #positionsdiv::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        #positionsdiv .col-md-3,
+        #positionsdiv .col-lg-3,
+        #positionsdiv .col-md-2,
+        #positionsdiv .col-lg-2 {
+            float: left;
+        }
+
+        #positionsdiv .col-md-3,
+        #positionsdiv .col-lg-3 {
+            width: 25%;
+        }
+
+        #positionsdiv .col-md-2,
+        #positionsdiv .col-lg-2 {
+            width: 16.66667%;
+        }
+
+        #footerdiv::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        #footerdiv .col-md-6,
+        #footerdiv .col-lg-6 {
+            float: left;
+            width: 50%;
         }
 
         .topdets {

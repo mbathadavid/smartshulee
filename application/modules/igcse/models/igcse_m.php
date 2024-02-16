@@ -63,6 +63,10 @@ class Igcse_m extends MY_Model{
                     ->row();
      }
 
+     function student_count($tid,$class) {
+        return $this->db->where(array('tid' => $tid))->where('class',$class)->get('igcse_final_results')->result();
+     }
+
      //Check whether there are previously entered marks for that subject
      function check_marks($tid,$exid,$sub) {
         return $this->db
@@ -70,6 +74,14 @@ class Igcse_m extends MY_Model{
                     ->where(array('exams_id' => $exid))
                     ->where(array('subject' => $sub))
                     ->get('igcse_marks_list')
+                    ->result();
+     }
+
+     function student_scores($tid,$stu) {
+        return $this->db
+                    ->where(array('tid' => $tid))
+                    ->where(array('student' => $stu))
+                    ->get('igcse_computed_marks')
                     ->result();
      }
 
@@ -194,6 +206,10 @@ class Igcse_m extends MY_Model{
      function get_student_computed_marks($tid,$students = array()) {
         return $this->db->where(array('tid' => $tid))->where_in('student',$students)->get('igcse_computed_marks')->result();
      }
+
+     
+
+     //Get marks by 
 
      function mains($tid) {
         return $this->db->where(array('tid' => $tid))->where('type',1)->get('igcse_exams')->result();

@@ -1003,6 +1003,7 @@ class Admin extends Admin_Controller
                 $data['comparison'] = $comparewith;
                 $data['results'] = $results;
                 $data['computedmarks'] = $computedmarks;
+                $data['compareresults'] = $compareresults;
             }
         }
 
