@@ -24,6 +24,22 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
         <hr>
     </div>
     <div id="step1">
+
+        <?php if ($this->session->flashdata('update_success')) : ?>
+            <div class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <?php echo $this->session->flashdata('update_success'); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($this->session->flashdata('insertion_success')) : ?>
+            <div class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <?php echo $this->session->flashdata('insertion_success'); ?>
+            </div>
+        <?php endif; ?>
+
+
         <div class="panel panel-primary">
             <div class="panel-heading">Record Marks</div>
             <div class="panel-body">
@@ -126,7 +142,7 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
         function populateExamDropdown(examData) {
             var examDropdown = $('#exam-dropdown');
             examDropdown.empty(); // Clear existing options
-            examDropdown.append($('<option>').text('Select an exam').val('')); // Add default option
+            examDropdown.append($('<option>').text('').val('')); // Add default option
             $.each(JSON.parse(examData), function(index, exam) {
                 examDropdown.append($('<option>').text(exam.title).val(exam.id));
             });
@@ -161,7 +177,7 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
 
         subjectsDropdown.empty();
 
-        subjectsDropdown.append($('<option>').text('Select a subject').attr('value', ''));
+        subjectsDropdown.append($('<option>').text('').attr('value', ''));
 
         var dataArray = JSON.parse(response);
 

@@ -4,16 +4,13 @@ $subjects = $this->exams_m->get_subjects(7, 1);
 $teachers = $this->igcse_m->list_teachers();
 $classes_with_teachers = $this->igcse_m->get_class_with_teacher();
 $subs = $this->igcse_m->populate('subjects', 'id', 'name');
-// echo "<pre>";
-// print_r($students);
-// print_r($marks);
-// echo "</pre>";
+$examsid = $this->igcse_m->get_examstable($exam);
 ?>
 
 <div class="portlet mt-2">
   <div class="portlet-heading portlet-default border-bottom">
     <h3 class="portlet-title text-dark">
-      <b>Record Exam Marks</b>
+      <b>Record Exam Marks - <?php echo $subs[$subject] ?> <?php echo $this->streams[$class] ?> <?php echo ucwords($examsid->title) ?></b>
     </h3>
     <div class="pull-right">
 
@@ -25,9 +22,10 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
     <hr>
   </div>
   <?php
+
   if ($marks) { ?>
     <div class="alert alert-danger" style="margin-right: 70px; margin-left: 70px;">
-      <p> Some previously Added Marks were found for <?php echo count($marks); ?> Students. You can only Edit.</p>
+      <p> <strong>Alert!</strong> Some previously Added Marks were found for <?php echo count($marks); ?> Students. You can only Edit.</p>
 
     </div>
 
@@ -37,23 +35,17 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
   <?php echo form_open(base_url('trs/submit_marks'), array('id' => 'marksForm')); ?>
   <div class="container" id="dataTable" style="padding-bottom: 20px;">
     <div class="col-md-12 mt-2 mb-3 " style="margin-bottom: 20px;">
-      <div class="col-md-6">
-        <div class="form-group row">
-          <label for="outof1" class="col-md-4 col-form-label">Grading system:</label>
-          <div class="col-md-8">
-            <?php
-            echo form_dropdown('grading', array('' => '') + $grading, isset($sel_gd) ? $sel_gd : '', ' class="select" data-placeholder="Select Grading System" required ');
-            echo form_error('grading');
-            ?>
-          </div>
-        </div>
-      </div>
+
       <div class="col-md-6">
         <div class="form-group row">
           <label for="outof2" class="col-md-4 col-form-label">Exam Out_of:</label>
           <div class="col-md-8">
             <input type="number" name="outof" id="outof2" value="<?php echo isset($outof->out_of) ? $outof->out_of : ''; ?>" class="form-control" placeholder="Exam Out_of" required>
           </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group row">
         </div>
       </div>
     </div>

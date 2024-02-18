@@ -1106,11 +1106,18 @@ class Trs extends Trs_Controller
         $data['thread']= (object) $this->exams_m->get_exams();
         //create pagination links
         $data['links'] = $this->pagination->create_links();
-        // $students = $this->igcse_m->get_students(7);
 
-       
+
+        //  $trs = $this->igcse_m->get_teacher(32);
+        // $cls_tr = $this->igcse_m->class_teacher(7);
+        // echo "<pre>";
+        // print_r($trs->id);
+        // print_r($cls_tr->class_teacher);
+        // echo "<pre>";
+        // die;
+              
+
         if ($this->input->post()) {
-
             
             $class = $this->input->post('class');
             $thread = $this->input->post('thread');
@@ -1171,6 +1178,7 @@ class Trs extends Trs_Controller
         //create pagination links
         $data['links'] = $this->pagination->create_links();
         $data['grading'] = $this->exams_m->get_grading_system();
+        
        
 
         if ($this->input->post()) {
@@ -1201,7 +1209,7 @@ class Trs extends Trs_Controller
                 $student_ids[] = $student->id;
             }
 
-            $data['marks'] = $this->igcse_m->get_results($student_ids, $subject);
+            $data['marks'] = $this->igcse_m->get_results($student_ids, $subject, $exam);
         }
 
         $data['page'] = $page;
@@ -1238,6 +1246,9 @@ class Trs extends Trs_Controller
                 $this->db->where('subject', $subject);
                 $this->db->update('igcse_marks_list');
             }
+
+            $update_success = false;
+           
             foreach ($marks_new as $student_id => $mark_new) {
                 $formdata = array(
                     'marks' => $mark_new,
@@ -1246,40 +1257,39 @@ class Trs extends Trs_Controller
                     'modified_on' => time(), 
                 );
 
-                $this->db->set($formdata);
-                $this->db->where('student', $student_id);
-                $this->db->where('subject', $subject);
-                $this->db->update('igcse_marks_list');
+                $update_success = $this->db->set($formdata)
+                    ->where('student', $student_id)
+                    ->where('subject', $subject)
+                    ->update('igcse_marks_list');
+
+            }
+               $insertion_success = false;
+            if (is_array($marks)) {
+                foreach ($marks as $student_id => $mark) {
+                    $data = array(
+                            'student' => $student_id,
+                            'marks' => $mark,
+                            'class' => $class,
+                            'subject' => $subject,
+                            'tid' => $thread,
+                            'exams_id' => $exam,
+                            'type' => $type->type,
+                            'out_of' => $outof,
+                            'created_on' => time(),
+                            'created_by' => $user->id,
+                            'class_group' => $classgroup->class
+                        );
+
+                    $insertion_success = $this->igcse_m->save_marks($data);
+                }
             }
 
-            foreach ($marks as $student_id => $mark) {
-                $data = array(
-                    'student' => $student_id,
-                    // 'grading' =>$gd_id,
-                    'marks' => $mark,
-                    'class' => $class,
-                    'subject' => $subject,
-                    'tid' => $thread,
-                    'exams_id' => $exam,
-                    'type' => $type->type,
-                    'out_of'=> $outof,
-                    'created_on' => time(),
-                    'created_by' =>$user->id ,
-                    'class_group' => $classgroup->class
-
-                     );
-
-
-            
-            
-
-                $this->igcse_m->save_marks($data);
+            if ($update_success) {
+                $this->session->set_flashdata('update_success', 'Update successful!');
+            } 
+            else {
+                $this->session->set_flashdata('insertion_success', 'Insertion successful!');
             }
-
-            //  echo"<pre>";
-            // print_r($data);
-            // echo "<pre>";
-            // die;
 
             redirect('trs/record');
 
@@ -1296,7 +1306,23 @@ class Trs extends Trs_Controller
     }
     public function fetch_data($selectedClassId)
     {
-        $class = $this->igcse_m->fetch_subjects_by_class($selectedClassId);
+        $teacher = $this->user->id;
+        $cls_tr = $this->igcse_m->class_teacher($selectedClassId);
+        $trs = $this->igcse_m->get_teacher($teacher);
+
+        if ($cls_tr->class_teacher == $teacher) {
+            $class = $this->igcse_m->fetch_subjects_by_classteacher($selectedClassId);
+        } else {
+            $class = $this->igcse_m->fetch_subjects_by_class($selectedClassId, $trs->id);
+        }
+                     
+         
+        // echo "<pre>";
+        // print_r($trs->id);
+        // print_r($cls_tr->class_teacher);
+        // echo "<pre>";
+
+       
         $subs = $this->igcse_m->populate('subjects', 'id', 'name');
         $data = array();
         foreach ($class as $row) {
