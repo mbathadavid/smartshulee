@@ -147,3 +147,9 @@ ALTER TABLE `igcse_final_results`
 	ADD COLUMN `ovr_pos` INT NULL DEFAULT NULL AFTER `str_pos`,
 	ADD COLUMN `outof` INT NULL DEFAULT NULL AFTER `ovr_pos`,
 	ADD COLUMN `student` INT NULL DEFAULT NULL AFTER `outof`;
+
+  ALTER TABLE `igcse_final_results`
+	ADD COLUMN `trs_comment` VARCHAR(100) NULL DEFAULT NULL AFTER `student`,
+	ADD COLUMN `prin_comment` VARCHAR(100) NULL DEFAULT NULL AFTER `trs_comment`;
+ALTER TABLE `igcse_final_results`
+	ADD COLUMN `commentedby` INT(11) NULL DEFAULT NULL AFTER `prin_comment`;

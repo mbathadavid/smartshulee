@@ -1106,16 +1106,7 @@ class Trs extends Trs_Controller
         $data['thread']= (object) $this->exams_m->get_exams();
         //create pagination links
         $data['links'] = $this->pagination->create_links();
-
-
-        //  $trs = $this->igcse_m->get_teacher(32);
-        // $cls_tr = $this->igcse_m->class_teacher(7);
-        // echo "<pre>";
-        // print_r($trs->id);
-        // print_r($cls_tr->class_teacher);
-        // echo "<pre>";
-        // die;
-              
+           
 
         if ($this->input->post()) {
             
@@ -1144,18 +1135,25 @@ class Trs extends Trs_Controller
         $this->pagination->initialize($config);
         $page = ($this->uri->segment(4)) ? $this->uri->segment(4) : 1;
         $data['exams'] = $this->exams_m->paginate_all($config['per_page'], $page);
+        $data['threads'] = (object) $this->exams_m->get_exams();
 
         if ($this->input->post()) {
 
 
+            $data['exams'] = $this->exams_m->paginate_all($config['per_page'], $page);
+            $data['threads'] = (object) $this->exams_m->get_exams();
             $class = $this->input->post('class');
             $subject = $this->input->post('subject');
-            
+            $thread = $this->input->post('thread');
+            $exam = $this->input->post('exam');
 
+            $data['class1'] = $this->input->post('class');
             $data['class'] = $this->input->post('class');
+            $data['thread'] = $this->input->post('thread');
             $data['subject'] = $this->input->post('subject');
+            $data['exam'] = $this->input->post('exam');
 
-            $data['marks'] = $this->igcse_m->get_marks_trs($class, $subject);
+            $data['marks'] = $this->igcse_m->get_marks_trs($class, $subject, $thread, $exam);
             
         }
 
@@ -1316,13 +1314,7 @@ class Trs extends Trs_Controller
             $class = $this->igcse_m->fetch_subjects_by_class($selectedClassId, $trs->id);
         }
                      
-         
-        // echo "<pre>";
-        // print_r($trs->id);
-        // print_r($cls_tr->class_teacher);
-        // echo "<pre>";
-
-       
+              
         $subs = $this->igcse_m->populate('subjects', 'id', 'name');
         $data = array();
         foreach ($class as $row) {
@@ -1345,9 +1337,91 @@ class Trs extends Trs_Controller
 
     function record_marks()
     {
-        $this->template->title('Attendance')->build('trs/exam/record_marks');
+        $this->template->title('Record marks')->build('trs/exam/record_marks');
     }
 
+    function addcomment($class){
+
+        $data['threads'] = (object) $this->exams_m->get_exams();
+
+        
+        if ($this->input->post()) {
+            $thread = $this->input->post('thread');
+            $data['marks'] = $this->igcse_m->gettotal($class, $thread);
+            $data['thread'] = $thread;
+            $data['class'] = $class;
+
+        
+        }
+       
+
+        $this->template->title('Add comment')->build('trs/exam/addcomment', $data);
+
+
+
+    }
+
+    function submit_comment($thread, $class){
+
+               
+        
+        if ($this->input->post()) {
+
+           
+            // if (condition) {
+            //     # code...
+            // } else {
+            //     # code...
+            // }
+            
+
+            $newcomment = $this->input->post('commentnew');
+            $updatecomment = $this->input->post('comment');
+
+            foreach ($newcomment as $st => $comment) {
+                $formdata = array(
+                    'trs_comment' => $comment,
+                    'commentedby' => $this->user->id,
+                    'modified_by' =>  $this->user->id,
+                    'modified_on' => time(),
+                );
+
+                $insert_success = $this->db->set($formdata)
+                    ->where('student', $st)
+                    ->where('tid', $thread)
+                    ->where('class', $class)
+                    ->update('igcse_final_results');
+
+            }
+
+            foreach ($updatecomment as $st => $update) {
+                $formdata = array(
+                    'trs_comment' => $update,
+                    'commentedby' => $this->user->id,
+                    'modified_by' =>  $this->user->id,
+                    'modified_on' => time(),
+                );
+
+                $update_success = $this->db->set($formdata)
+                    ->where('student', $st)
+                    ->where('tid', $thread)
+                    ->where('class', $class)
+                    ->update('igcse_final_results');
+            }
+
+            if ($update_success) {
+                $this->session->set_flashdata('update_success', 'Update successful!');
+            } elseif($insert_success) {
+                $this->session->set_flashdata('insertion_success', 'Insertion successful!');
+            }
+
+            redirect('trs/addcomment/'. $class);
+
+            
+
+        }
+        
+    }
     
     /**
      * Record Attendance

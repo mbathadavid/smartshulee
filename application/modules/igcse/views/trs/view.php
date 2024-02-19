@@ -1,6 +1,5 @@
 <?php
 $this->load->model('igcse/igcse_m');
-$subjects = $this->exams_m->get_subjects(7, 1);
 $teachers = $this->igcse_m->list_teachers();
 $classes_with_teachers = $this->igcse_m->get_class_with_teacher();
 $subs = $this->igcse_m->populate('subjects', 'id', 'name');
@@ -14,7 +13,7 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
     </h3>
     <div class="pull-right">
 
-      <a class="btn btn-success " href="<?php echo base_url('trs/record'); ?>"><i class="fa fa-edit"></i> Edit Marks</a>
+      <a class="btn btn-success " href="<?php echo base_url('igcse/trs/record'); ?>"><i class="fa fa-edit"></i> Edit Marks</a>
       <a class="btn btn-danger " onclick="goBack()"><i class="fa fa-caret-left"></i> Go Back</a>
     </div>
 
@@ -171,7 +170,7 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
     $('#thread-dropdown').change(function() {
       var selectedThreadId = $(this).val();
 
-      var url = `<?php echo base_url("trs/fetch_exams/") ?>/${selectedThreadId}`;
+      var url = `<?php echo base_url("igcse/trs/fetch_exams/") ?>/${selectedThreadId}`;
 
       console.log(url);
       // console.log('Selected Thread ID:', selectedThreadId);
@@ -215,7 +214,7 @@ $subs = $this->igcse_m->populate('subjects', 'id', 'name');
     // Attach change event listener to the class dropdown
     $('#class-dropdown').change(function() {
       var selectedClassId = $(this).val();
-      var url2 = `<?php echo base_url("trs/fetch_data/") ?>/${selectedClassId}`;
+      var url2 = `<?php echo base_url("igcse/trs/fetch_data/") ?>/${selectedClassId}`;
 
       $.ajax({
         url: url2,
