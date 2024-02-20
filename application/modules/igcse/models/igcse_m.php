@@ -502,8 +502,7 @@ class Igcse_m extends MY_Model{
     }
 
     function count()
-    {
-        
+    {        
         return $this->db->count_all_results('igcse');
     }
 
@@ -568,6 +567,21 @@ function populate($table,$option_val,$option_text)
             ->row(); // Return only one row
     }
 
+    function get_teacher($id)
+    {
+        $this->select_all_key('teachers');
+        $this->db->where($this->dx('user_id') . " ='" . $id . "'", NULL, FALSE);
+        $this->db->where($this->dx('status') . " ='" . 1 . "'", NULL, FALSE);
+        return $this->db->get('teachers')->row();
+    }
+
+    function is_classteacher($class){
+        $query = $this->db->where('id', $class)
+        ->get('classes');
+        return $query->row();
+
+    }
+
     function list_teachers()
     {
         $teacher = $this->get_teachers(); 
@@ -578,13 +592,22 @@ function populate($table,$option_val,$option_text)
         }
     }
 
-    function fetch_subjects_by_class($selectedClassId)
+    function fetch_subjects_by_class($selectedClassId, $teacher)
     {
-       
-        $query = $this->db->where('class', $selectedClassId)
-            ->get('subjects_assign');
+        $this->db->where('class', $selectedClassId)
+            ->where('teacher', $teacher); // Changed 'class' to 'teacher' for the second condition
+        $query = $this->db->get('subjects_assign');
         return $query->result();
     }
+
+    function fetch_subjects_by_classteacher($selectedClassId)
+    {
+        $this->db->where('class', $selectedClassId);
+        $query = $this->db->get('subjects_assign');
+        return $query->result();
+    }
+
+
     function fetch_outof($exam)
     {
 
@@ -609,12 +632,20 @@ function populate($table,$option_val,$option_text)
         return $query->row();
     }
 
-    function get_marks_trs($class, $subject)
+    function get_marks_trs($class, $subject, $thread, $exam)
     {
         $query = $this->db->where('class', $class)
+            ->where('tid', $thread)
             ->where('subject', $subject)
+            ->where('exams_id', $exam)
             ->get('igcse_marks_list');
         return $query->result();
+    }
+
+    function get_examstable($id){
+        $query = $this->db->where('id', $id)
+               ->get('igcse_exams');
+        return $query->row();  
     }
 
 
@@ -638,6 +669,16 @@ function populate($table,$option_val,$option_text)
         }
     }
 
+    function class_teacher($id)
+    {
+        $this->db->select('*');
+        $this->db->from('classes');
+        $this->db->where('id', $id);
+        $query = $this->db->get();
+        return $query->row(); 
+      
+    }
+
     
 
   
@@ -649,14 +690,73 @@ function populate($table,$option_val,$option_text)
         return $this->db->get('admission')->row();
     }
 
-    public function get_results($student, $subject)
+    function gettotal($class, $exam)
+    {
+        $query = $this->db->where('class', $class)
+            ->where('tid', $exam)
+            ->order_by('total', 'desc') // Order by total_score in descending order
+            ->get('igcse_final_results');
+        return $query->result();
+    }
+
+    function tidfound($thread){
+        $query = $this->db->where('tid', $thread)
+              ->get('igcse_final_results');
+        return $query->result();
+    }
+
+    public function get_results($student, $subject, $exam)
     {
         $this->db->select('*');
         $this->db->from('igcse_marks_list');
         $this->db->where_in('student', $student);
         $this->db->where('subject', $subject);
+        $this->db->where('exams_id', $exam);
         $query = $this->db->get();
         return $query->result(); // Return the results
+    }
+
+    public function get_exams_by_thread($exid)
+    {
+        $this->db->select('*');
+        $this->db->from('igcse_exams');
+        $this->db->where('tid', $exid);
+        $query = $this->db->get();
+        return $query->result(); // Return the single row
+    }
+
+    public function get_exams_by_tid($exid)
+    {
+        $this->db->select('*');
+        $this->db->from('igcse_exams');
+        $this->db->where('tid', $exid);
+        $this->db->limit(1); // Limit the result to 1 row
+        $query = $this->db->get();
+
+        return $query->row(); // Return the single row
+    }
+    
+    function get_grading_system()
+    {
+        $result = $this->db->select('grading_system.*')
+        ->order_by('created_on', 'DESC')
+        ->get('grading_system')
+        ->result();
+
+        $arr = array();
+        foreach ($result as $res) {
+            $arr[$res->id] = $res->title;
+        }
+
+        return $arr;
+    }
+    public function get_exams()
+    {
+        $this->db->select('*');
+        $this->db->from('igcse');
+        $query = $this->db->get();
+
+        return $query->result(); // Return the single row
     }
 
     public function save_marks($data)
@@ -688,4 +788,6 @@ function populate($table,$option_val,$option_text)
                     return FALSE;
             }
     }
+
+ 
 }

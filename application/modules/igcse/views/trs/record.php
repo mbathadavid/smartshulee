@@ -1,6 +1,5 @@
 <?php
 $this->load->model('igcse/igcse_m');
-$subjects = $this->exams_m->get_subjects(7, 1);
 $teachers = $this->igcse_m->list_teachers();
 $classes_with_teachers = $this->igcse_m->get_class_with_teacher();
 $subs = $this->igcse_m->populate('subjects', 'id', 'name');
@@ -45,12 +44,12 @@ foreach ($classes as $keey => $clz) {
 
                     // echo $clz->id;
             ?>
-                    <a class="btn btn-warning " href="<?php echo base_url('trs/addcomment/' . $clz->id); ?>"><i class="fa fa-star"></i> View Exam Results</a>
+                    <a class="btn btn-warning " href="<?php echo base_url('igcse/trs/addcomment/' . $clz->id); ?>"><i class="fa fa-star"></i> View Exam Results</a>
 
             <?php                                                                                                                                        }
             }
             ?>
-            <a class="btn btn-success " href="<?php echo base_url('trs/view'); ?>"><i class="fa fa-eye"></i> View Subjects Marks</a>
+            <a class="btn btn-success " href="<?php echo base_url('igcse/trs/view'); ?>"><i class="fa fa-eye"></i> View Subjects Marks</a>
             <a class="btn btn-danger " onclick="goBack()"><i class="fa fa-caret-left"></i> Go Back</a>
         </div>
 
@@ -81,7 +80,7 @@ foreach ($classes as $keey => $clz) {
                     <div class="col-md-12 col-sm-12">
                         <?php
                         $subject = $this->input->post('subject');
-                        echo form_open(base_url('trs/addmarks/' . $subject)); ?>
+                        echo form_open(base_url('igcse/trs/addmarks/' . $subject)); ?>
                         <div class="col-sm-3">
                             <label>Class</label>
                             <?php
@@ -145,7 +144,7 @@ foreach ($classes as $keey => $clz) {
         $('#thread-dropdown').change(function() {
             var selectedThreadId = $(this).val();
 
-            var url = `<?php echo base_url("trs/fetch_exams/") ?>/${selectedThreadId}`;
+            var url = `<?php echo base_url("igcse/trs/fetch_exams/") ?>/${selectedThreadId}`;
 
             console.log(url);
             // console.log('Selected Thread ID:', selectedThreadId);
@@ -189,7 +188,7 @@ foreach ($classes as $keey => $clz) {
         // Attach change event listener to the class dropdown
         $('#class-dropdown').change(function() {
             var selectedClassId = $(this).val();
-            var url2 = `<?php echo base_url("trs/fetch_data/") ?>/${selectedClassId}`;
+            var url2 = `<?php echo base_url("igcse/trs/fetch_data/") ?>/${selectedClassId}`;
 
             $.ajax({
                 url: url2,

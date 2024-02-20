@@ -1,6 +1,5 @@
 <?php
 $this->load->model('igcse/igcse_m');
-$subjects = $this->exams_m->get_subjects(7, 1);
 $teachers = $this->igcse_m->list_teachers();
 $classes_with_teachers = $this->igcse_m->get_class_with_teacher();
 $subs = $this->igcse_m->populate('subjects', 'id', 'name');
@@ -32,7 +31,7 @@ $examsid = $this->igcse_m->get_examstable($exam);
   <?php }
   ?>
 
-  <?php echo form_open(base_url('trs/submit_marks'), array('id' => 'marksForm')); ?>
+  <?php echo form_open(base_url('igcse/trs/submit_marks'), array('id' => 'marksForm')); ?>
   <div class="container" id="dataTable" style="padding-bottom: 20px;">
     <div class="col-md-12 mt-2 mb-3 " style="margin-bottom: 20px;">
 
@@ -46,6 +45,13 @@ $examsid = $this->igcse_m->get_examstable($exam);
       </div>
       <div class="col-md-6">
         <div class="form-group row">
+          <div class="col-md-4"><strong>Grading System </strong><span class='required'>*</span></div>
+          <div class="col-md-8">
+            <?php
+            echo form_dropdown('grading', array('' => '') + $grading, isset($sel_gd) ? $sel_gd : '', ' class="select" data-placeholder="Select Grading System" required');
+            echo form_error('grading');
+            ?>
+          </div>
         </div>
       </div>
     </div>
@@ -134,7 +140,7 @@ $examsid = $this->igcse_m->get_examstable($exam);
     $('#thread-dropdown').change(function() {
       var selectedThreadId = $(this).val();
 
-      var url = `<?php echo base_url("trs/fetch_exams/") ?>/${selectedThreadId}`;
+      var url = `<?php echo base_url("igcse/trs/fetch_exams/") ?>/${selectedThreadId}`;
 
       console.log(url);
       // console.log('Selected Thread ID:', selectedThreadId);
@@ -178,7 +184,7 @@ $examsid = $this->igcse_m->get_examstable($exam);
     // Attach change event listener to the class dropdown
     $('#class-dropdown').change(function() {
       var selectedClassId = $(this).val();
-      var url2 = `<?php echo base_url("trs/fetch_data/") ?>/${selectedClassId}`;
+      var url2 = `<?php echo base_url("igcse/trs/fetch_data/") ?>/${selectedClassId}`;
 
       $.ajax({
         url: url2,
@@ -258,6 +264,15 @@ $examsid = $this->igcse_m->get_examstable($exam);
         alert('Marks cannot be greater than out of');
         e.preventDefault(); // Prevent form submission
       }
+    });
+  });
+</script>
+
+<script>
+  $(document).ready(function() {
+    $('#marksForm').submit(function() {
+      // Disable the form submission button to prevent multiple submissions
+      $(this).find(':submit').attr('disabled', 'disabled');
     });
   });
 </script>

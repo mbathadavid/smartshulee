@@ -164,3 +164,8 @@ ALTER TABLE `igcse_final_results`
 
 ALTER TABLE `igcse_marks_list`
 	ADD COLUMN `gid` INT(11) NULL AFTER `out_of`;
+  ALTER TABLE `igcse_final_results`
+	ADD COLUMN `trs_comment` VARCHAR(100) NULL DEFAULT NULL AFTER `student`,
+	ADD COLUMN `prin_comment` VARCHAR(100) NULL DEFAULT NULL AFTER `trs_comment`;
+ALTER TABLE `igcse_final_results`
+	ADD COLUMN `commentedby` INT(11) NULL DEFAULT NULL AFTER `prin_comment`;

@@ -29,7 +29,7 @@
 					
 
                             <div class="col-lg-3 col-md-6">
-							<a href="<?php echo base_url('trs/record'); ?>">
+							<a href="<?php echo base_url('igcse/trs/record'); ?>">
                                 <div class="card-box widget-box-two widget-two-primary">
                                     <i class="mdi mdi-chart-areaspline widget-two-icon"></i>
                                     <div class="wigdet-two-content">
