@@ -140,6 +140,7 @@
 
 <?php if ($exams) : ?>
     <div class="block-fluid">
+    <h6 class="text-center"><?php echo anchor('admin/igcse/compute/' . $id, 'Compute Marks', 'class="btn btn-success mt-2 text-center"'); ?>&nbsp;<?php echo anchor('admin/igcse/comments/' . $id, 'Comments', 'class="btn btn-success mt-2 text-center"'); ?></h6>
         <table class="fpTable" cellpadding="0" cellspacing="0" width="100%">
             <thead>
                 <th>#</th>
@@ -202,7 +203,7 @@
             </tbody>
         </table>
     </div>
-    <h6 class="text-center"><?php echo anchor('admin/igcse/compute/' . $id, 'Compute Marks', 'class="btn btn-success mt-2 text-center"'); ?></h6>
+    
 
 <?php else : ?>
     <p class='text'><?php echo lang('web_no_elements'); ?></p>

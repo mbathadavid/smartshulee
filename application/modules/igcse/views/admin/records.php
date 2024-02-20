@@ -52,8 +52,21 @@ if ($this->input->get('sb')) {
   </div>
   <div class="block-fluid">
         <!-- Marks Found alert -->
-        <?php if (isset($checkmarks) && count($checkmarks) > 0) { ?>
-        <div class="alert alert-success alert-dismissible">
+        <?php 
+          if (isset($checkmarks) && count($checkmarks) > 0) { 
+            $outofs = [];
+            $gids = [];
+
+            foreach ($checkmarks as $checkmark) {
+              $outofs[] = $checkmark->out_of;
+              $gids[] = $checkmark->gid;
+            }
+
+            $outof = array_unique($outofs);
+            $gid = array_unique($gids);
+            
+        ?>
+        <div class="alert alert-info alert-dismissible">
             <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
             <strong>Alert!</strong> Some Previously Added Marks Were Found for <b><?php echo count($checkmarks) ?></b> students. You can only edit these Marks.
         </div>
@@ -68,7 +81,7 @@ if ($this->input->get('sb')) {
       <div class="col-md-3">Grading System <span class='required'>*</span></div>
       <div class="col-md-9">
         <?php
-        echo form_dropdown('grading', array('' => '') + $grading, isset($sel_gd) ? $sel_gd : '', ' class="select" data-placeholder="Select Grading System" ');
+        echo form_dropdown('grading', array('' => '') + $grading, isset($gid) ? !empty($gid) ? $gid[0] : '' : '', ' class="select" data-placeholder="Select Grading System" ');
         echo form_error('grading');
         ?>
       </div>
@@ -76,7 +89,7 @@ if ($this->input->get('sb')) {
     <div class='form-group'>
       <div class="col-md-3">Out_Of <span class='required'>*</span></div>
       <div class="col-md-9">
-        <?php echo form_input('outof', $this->input->post() ? $this->input->post('outof') : '', ' id="outof" class="ol" style="width:60%" placeholder="Marks out of" '); ?>
+        <?php echo form_input('outof', isset($outof) ? $outof[0] : '', ' id="outof" class="ol" style="width:60%" placeholder="Marks out of" '); ?>
       </div>
     </div>
     <h3 style="text-align:center; text-decoration:underline"><?php echo $class_name; ?></h3>

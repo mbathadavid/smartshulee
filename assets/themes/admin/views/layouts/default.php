@@ -20,6 +20,7 @@
         <?php echo theme_css('custom.css'); ?>
         <?php echo theme_css('output.css'); ?>
         <link href="<?php echo js_path('plugins/jeditable/bootstrap-editable.css'); ?>" rel="stylesheet">
+        
         <!--[if lt IE 10]>
           <link href="css/ie.css" rel="stylesheet" type="text/css" />
       <![endif]-->
@@ -75,6 +76,10 @@
         <script src="<?php echo plugin_path('bootstrap.daterangepicker/daterangepicker.js'); ?>" ></script> 
         <script src="<?php echo plugin_path('bootstrap.datetimepicker/bootstrap-datetimepicker.min.js'); ?>"></script>	 
         <link rel="shortcut icon" type="image/ico" href="<?php echo image_path('favicon.ico'); ?>" />
+
+        <!-- Igcse Customizations -->
+        <link href="<?php echo base_url('assets/themes/admin/plugins/font-awesome/css/font-awesome.min.css'); ?>" type="text/css" rel="stylesheet" />
+        <link href="<?php echo base_url('assets/themes/admin/plugins/apexcharts/dist/apexcharts.css'); ?>" type="text/css" rel="stylesheet" />
     </head>
     <?php
     $ccls = 'ssRed';
@@ -236,7 +241,10 @@
         <?php echo theme_js('ng/lib-ng.js'); ?> 
         <?php echo theme_js('ng/ngsc.js'); ?>
 		
-		
+        <!-- Igcse Customizations -->
+        <script src="<?php echo base_url('assets/themes/admin/plugins/apexcharts/dist/apexcharts.min.js'); ?>"></script>
+        <script src="<?php echo base_url('assets/themes/admin/plugins/qrcodejs/qrcode.min.js'); ?>"></script>
+
         <script>
                         $(document).ready(function ()
                         {

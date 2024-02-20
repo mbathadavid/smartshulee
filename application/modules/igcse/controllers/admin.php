@@ -13,6 +13,7 @@ class Admin extends Admin_Controller
         }
         $this->load->model('igcse_m');
         $this->load->model('exams/exams_m');
+        $this->load->model('teachers/teachers_m');
     }
 
     public function index()
@@ -215,6 +216,77 @@ class Admin extends Admin_Controller
         $this->template->title('Igcse Exam Threads')->build('admin/exams', $data);
     }
 
+    //Deal with comments
+    public function comments($id = false) {
+        $thread = $this->igcse_m->find($id);
+        $data['thread'] = $thread;
+
+        if ($this->input->post()) {
+            $clsgroup = $this->input->post('group');
+            $stream = $this->input->post('class');
+            // $thread = $this->input->post('thread');
+            // $tid = $this->igcse_m->find($thread);
+
+            if (!empty($clsgroup)) {
+                $students = $this->igcse_m->get_students_by_group($clsgroup);
+                // $subjects = $this->igcse_m->get_class_subjects($clsgroup,$tid->term);
+            } else {
+                $students = $this->igcse_m->get_students_by_stream($stream);
+                // $subjects = $this->igcse_m->get_subjects($stream,$tid->term);
+            }
+            
+            //Retrieve Final Results
+            if (empty($students)) {
+                $this->session->set_flashdata('message', array('type' => 'error', 'text' => 'No marks found for students in this Class'));
+                redirect('admin/igcse/comments/'.$id);
+            } else {
+
+                $results = $this->igcse_m->results($id,$students);
+                // $data['subjects'] = $subjects;
+                $data['results'] = $results;
+                $data['thread'] = $thread;
+                $data['clsgroup'] = $clsgroup;
+                $data['stream'] = $stream;
+                $data['id'] = $id;
+            }
+        }
+
+        $data['threads'] = $this->igcse_m->all_igcse();
+
+        $this->template->title('Result Comments')->build('admin/comments', $data);
+    }
+
+    //Function to update comments
+    public function update_comments($id = false) {
+        $user = $this->ion_auth->get_user();
+
+        $post = (object) $this->input->post();
+        $marks = $post->mark;
+        $classteachercomments = $post->classteachercomment;
+        $principalcomments = $post->principalcomment;
+        $k = 0;
+
+        foreach ($marks as $key => $mark) {
+            $form_data = array(
+                'trs_comment' => $classteachercomments[$key],
+                'prin_comment' => $principalcomments[$key],
+                'commentedby' => $user->id
+            );
+
+            $done = $this->igcse_m->update_table($mark,'igcse_final_results',$form_data);
+
+            if ($done) {
+                $k++;
+            }
+        }
+
+        $mess = $k.' Comments Updated';
+
+        $this->session->set_flashdata('message', array('type' => 'success', 'text' => $mess));
+        redirect('admin/igcse/comments/'.$id);
+        
+    }
+
     //Compute Marks
     public function compute($id)
     {
@@ -252,6 +324,7 @@ class Admin extends Admin_Controller
                                 'student' => $stu,
                                 'subject' => $sub,
                                 'total' => $marko['total'],
+                                'points' => $marko['points'],
                                 'grade' => $marko['grade'],
                                 'grading' => $gid,
                                 'comment' => $marko['comment'],
@@ -275,6 +348,7 @@ class Admin extends Admin_Controller
                                 'student' => $stu,
                                 'subject' => $sub,
                                 'total' => $marko['total'],
+                                'points' => $marko['points'],
                                 'grade' => $marko['grade'],
                                 'grading' => $gid,
                                 'comment' => $marko['comment'],
@@ -299,7 +373,7 @@ class Admin extends Admin_Controller
                 //Work on populating final results
                 $resultsdone = $this->compute_results($clsgroup,$id,$gid);
                 
-                $mess = $k.' Marks Computed Successfully. '.$kk.' Mark computations updated Successfully.';
+                $mess = $k.' Records Compiled Successfully. '.$kk.' Records updated.';
                 $this->session->set_flashdata('message', array('type' => 'success', 'text' => $mess));
                 redirect('admin/igcse/exams/' . $id);
             }
@@ -417,35 +491,46 @@ class Admin extends Admin_Controller
         $students = [];
         $stuclsgrps = [];
         $stustreams = [];
+        $studentids = [];
+        // $gids = [];
 
         foreach ($marks as $key => $mark) {
             $students[$mark->id] = $mark->student;
             $stuclsgrps[$mark->id] = $mark->class_group;
             $stustreams[$mark->id] = $mark->class;
+            $studentids[] = $mark->student;
+            // $gids[] = $mark->grading;
         }
 
         $students = array_unique($students);
+        $studentids = array_unique($studentids);
+        // $gid = array_unique($gids);
 
         //Retrive marks for each student
         $studentmarks = [];
         foreach ($students as $ky => $stu) {
             $stumarks = [];
+            $stupoints = [];
 
             foreach ($marks as $mark) {
                 if ($stu == $mark->student) {
                     $stumarks[] = $mark->total;
+                    $stupoints[] = $mark->points;
                 }
             }
 
             $total = array_sum($stumarks);
+            $totalpoints = array_sum($stupoints);
             $avg = round($total / count($stumarks));
             $outof = count($stumarks) * 100;
+            $pointsoufof = count($stupoints) * 8;
 
             //Find grade
             $grading = $this->igcse_m->retrieve_grading($gid);
             foreach ($grading as $gy => $grad) {
                 if ($avg >= $grad->minimum_marks && $avg <= $grad->maximum_marks) {
                     $grade = $grad->grade;
+                    // $points = $grade->points;
                     $comment = $grad->comment;
                 }
             }
@@ -455,9 +540,12 @@ class Admin extends Admin_Controller
                 'class_group' => $stuclsgrps[$ky],
                 'class' => $stustreams[$ky],
                 'total' => $total,
+                'points' => $totalpoints,
+                'points_outof' => $pointsoufof,
                 'avg' => $avg,
                 'outof' => $outof,
                 'grade' => $grade,
+                'gid' => $gid,
                 'comment' => $comment
             ];
         }
@@ -473,10 +561,13 @@ class Admin extends Admin_Controller
                         'class_group' => $tot['class_group'],
                         'class' => $tot['class'],
                         'total' => $tot['total'],
+                        'points' => $tot['points'],
+                        'points_outof' => $tot['points_outof'],
                         'mean_mark' => $tot['avg'],
                         'mean_grade' => $tot['grade'],
                         'outof' => $tot['outof'],
                         'student' => $stu,
+                        'gid' => $tot['gid'],
                         'modified_on' => time(),
                         'modified_by' => $this->user->id
                     );
@@ -488,10 +579,13 @@ class Admin extends Admin_Controller
                         'class_group' => $tot['class_group'],
                         'class' => $tot['class'],
                         'total' => $tot['total'],
+                        'points' => $tot['points'],
+                        'points_outof' => $tot['points_outof'],
                         'mean_mark' => $tot['avg'],
                         'mean_grade' => $tot['grade'],
                         'outof' => $tot['outof'],
                         'student' => $stu,
+                        'gid' => $tot['gid'],
                         'created_on' => time(),
                         'created_by' => $this->user->id
                     );
@@ -502,6 +596,41 @@ class Admin extends Admin_Controller
             // }
        }
         
+       //Rank Computed Results
+       $results = $this->igcse_m->results($tid,$studentids);
+       $positions = $this->get_result_positions($results);
+
+       //Update Positions
+        foreach ($results as $key => $result) {    
+            //Get Current Positions
+            foreach ($positions as $keeey => $posi) {
+    
+                if ($keeey === 'ovrpositions') {
+                    foreach ($posi as $posikey => $pos) {
+                        if ($posikey == $key) {
+                            $ovrpos = $pos;
+                        }
+                    }
+                } elseif ($keeey === 'strpositions') {
+                    foreach ($posi as $posikey => $pos) {
+                        if ($posikey == $key) {
+                            $strpos = $pos;
+                        }
+                    }
+                }
+            }
+
+            $form_data = array(
+                'ovr_pos' => $ovrpos,
+                'str_pos' => $strpos
+            );
+
+            //Update Positions
+            $done = $this->igcse_m->update_table($result->id,'igcse_final_results',$form_data);
+            
+        }
+
+       
     //    die;
 
        return true;
@@ -680,6 +809,7 @@ class Admin extends Admin_Controller
                 foreach ($grading as $gy => $grad) {
                     if ($actualtotal >= $grad->minimum_marks && $actualtotal <= $grad->maximum_marks) {
                         $grade = $grad->grade;
+                        $points = $grad->points;
                         $comment = $grad->comment;
                     }
                 }
@@ -690,6 +820,7 @@ class Admin extends Admin_Controller
                     'catscore' => $actualcattotal,
                     'mainscore' => $actualmaintotal,
                     'total' => $actualtotal,
+                    'points' => $points,
                     'grade' => $grade,
                     'comment' => $comment
                 ];
@@ -783,26 +914,21 @@ class Admin extends Admin_Controller
         $sb = 0;
         //push class name to next view
         $class_name = $this->exams_m->populate('class_groups', 'id', 'name');
-        $exam = $this->exams_m->find1($thid);
-        $tar = $this->exams_m->get_stream($id);
+        $exam = $this->igcse_m->find1($thid);
+        $tar = $this->igcse_m->get_stream($id);
         $class_id = $tar->class;
         $stream = $tar->stream;
         $heading = 'Exam Marks For: <span style="color:blue">' . $class_name[$class_id] . '</span>';
-        $exam_type = $this->exams_m->get_exams_by_tid($thid);
+        $exam_type = $this->igcse_m->get_exams_by_tid($thid);
 
 
         $subjects = $this->exams_m->get_subjects($id, $exam->term);
-
-        // echo "<pre>";
-        // print_r($tid);
-        // echo "</pre>";
-        // die;
 
         $sel = 0;
         if ($this->input->get('sb')) {
             $sb = $this->input->get('sb');
             $data['selected'] = isset($subjects[$sb]) ? $subjects[$sb] : [];
-            $row = $this->exams_m->fetch_subject($sb);
+            $row = $this->igcse_m->fetch_subject($sb);
             $rrname = $row ? ' - ' . $row->name : '';
             $heading = 'Exam Marks For: <span style="color:blue">' . $class_name[$class_id] . $rrname . '</span>';
 
@@ -842,14 +968,21 @@ class Admin extends Admin_Controller
                     $inc = $mkpost['done'];
                 }
                 $sb = $this->input->get('sb');
-                $gd_id = $this->input->post('grading');
+                // $gd_id = $this->input->post('grading');
                 $marks = $this->input->post('marks');
                 $units = $this->input->post('units');
+                $gid = $this->input->post('grading');
                 $k = 0;
                 $kk = 0;
 
                 // $this->exams_m->set_grading($exid, $id, $sb, $gd_id, $user->id);
                 $perf_list = $this->_prep_marks($sb, $exid, $marks, $units);
+
+                // echo "<pre>";
+                //     print_r($this->input->post());
+                //     // print_r($perf_list);
+                // echo "</pre>";
+                // die;
 
                 foreach ($perf_list as $dat) {
                     $dat = (object) $dat;
@@ -866,6 +999,7 @@ class Admin extends Admin_Controller
                         'marks' => $mkcon,
                         'type' =>  $exam_type->id,
                         'out_of' =>  $dat->outof,
+                        'gid' => $gid,
                         'subject' => $mm->subject,
                         'created_by' => $dat->created_by,
                         'created_on' => time()
@@ -876,16 +1010,17 @@ class Admin extends Admin_Controller
 
                     if ($ckmarks) {
                         $k++;
-                        $done = $this->igcse_m->update_marks_attributes($ckmarks->id, ['marks' => $mkcon, 'modified_on' => time(), 'modified_by' => $user->id]);
+                        $done = $this->igcse_m->update_marks_attributes($ckmarks->id, ['out_of' => $dat->outof,'gid' => $gid,'marks' => $mkcon, 'modified_on' => time(), 'modified_by' => $user->id]);
                     } else {
                         $kk++;
                         $ok = $this->exams_m->insert_marks1($fvalues);
                     }
                 }
 
+                // die;
                 // if ($ok) {
                 // $this->acl->audit($ok, implode(' , ', $svalues));
-                $mess = $kk . ' Marks Inserted Successfully. ' . $k . 'Marks Updated Successfully';
+                $mess = $kk . ' Records Created Successfully. ' . $k . ' Records Updated';
 
                 $this->session->set_flashdata('message', array('type' => 'success', 'text' => $mess));
                 // } else {
@@ -911,6 +1046,8 @@ class Admin extends Admin_Controller
             $this->template->title('Record Exam Marks')->build('admin/records', $data);
         }
     }
+
+
     function _prep_marks($subject, $exm_mgmt_id, $marks = [], $units = [])
     {
         $perf_list = [];
@@ -995,11 +1132,11 @@ class Admin extends Admin_Controller
                 $compareresults = $this->igcse_m->results($comparewith,$students);
                 $computedmarks = $this->igcse_m->get_student_computed_marks($id,$students);
 
-                $resultpositions = $this->get_result_positions($results);
-                $comparepositions = $this->get_result_positions($compareresults); 
+                // $resultpositions = $this->get_result_positions($results);
+                // $comparepositions = $this->get_result_positions($compareresults); 
 
-                $data['comparepositions'] = $comparepositions;
-                $data['resultpositions'] = $resultpositions;
+                // $data['comparepositions'] = $comparepositions;
+                // $data['resultpositions'] = $resultpositions;
                 $data['comparison'] = $comparewith;
                 $data['results'] = $results;
                 $data['computedmarks'] = $computedmarks;
@@ -1014,6 +1151,113 @@ class Admin extends Admin_Controller
         $data['id'] = $id;
 
         $this->template->title('Report Forms')->build('admin/bulk', $data);
+    }
+
+    //Function to show Report Forms
+    public function report($id = false) {
+        $user = $this->ion_auth->get_user();
+
+        if ($this->input->post()) {
+            $clsgroup = $this->input->post('group');
+            $stream = $this->input->post('class');
+            $thread = $this->input->post('thread');
+            $tid = $this->igcse_m->find($thread);
+
+            if (!empty($clsgroup)) {
+                $students = $this->igcse_m->get_students_by_group($clsgroup);
+                $subjects = $this->igcse_m->get_class_subjects($clsgroup,$tid->term);
+            } else {
+                $students = $this->igcse_m->get_students_by_stream($stream);
+                $subjects = $this->igcse_m->get_subjects($stream,$tid->term);
+            }
+            
+            //Retrieve Final Results
+            if (empty($students)) {
+                $this->session->set_flashdata('message', array('type' => 'error', 'text' => 'No marks found for students in this Class'));
+                redirect('admin/igcse/report/');
+            } else {
+
+                $results = $this->igcse_m->results($thread,$students);
+                $data['subjects'] = $subjects;
+                $data['results'] = $results;
+                $data['thread'] = $this->igcse_m->find($thread);
+                $data['clsgroup'] = $clsgroup;
+                $data['stream'] = $stream;
+            }
+        }
+
+        
+        // $data['threads'] = $this->igcse_m->list_exams($id);
+        // $data['thread'] = $thread;
+        // $data['exams'] = $exams;
+        // $data['id'] = $id;
+        $data['threads'] = $this->igcse_m->all_igcse();
+
+        $this->template->title('Results Report')->build('admin/report', $data);
+    }
+
+    //Function to show Report Forms
+    public function sub_report($id = false) {
+        $user = $this->ion_auth->get_user();
+
+        if ($this->input->post()) {
+            $clsgroup = $this->input->post('group');
+            $stream = $this->input->post('class');
+            $thread = $this->input->post('thread');
+            $subject = $this->input->post('subject');
+            $tid = $this->igcse_m->find($thread);
+
+            if (!empty($clsgroup)) {
+                $students = $this->igcse_m->get_students_by_group($clsgroup);
+                $subjects = $this->igcse_m->get_class_subjects($clsgroup,$tid->term);
+            } else {
+                $students = $this->igcse_m->get_students_by_stream($stream);
+                $subjects = $this->igcse_m->get_subjects($stream,$tid->term);
+            }
+            
+            //Retrieve Final Results
+            if (empty($students)) {
+                $this->session->set_flashdata('message', array('type' => 'error', 'text' => 'No marks found for students in this Class'));
+                redirect('admin/igcse/sub_report/');
+            } else {
+                $exams = $this->igcse_m->get_thread_exams($thread);
+                $marks = $this->igcse_m->marks_list($thread,$subject,$students);
+                $data['subjects'] = $subjects;
+                $data['marks'] = $marks;
+                $data['thread'] = $this->igcse_m->find($thread);
+                $data['clsgroup'] = $clsgroup;
+                $data['stream'] = $stream;
+                $data['exams'] = $exams;
+                $data['subject'] = $this->igcse_m->get_subject($subject);
+            }
+        }
+
+        
+        // $data['threads'] = $this->igcse_m->list_exams($id);
+        // $data['thread'] = $thread;
+        // $data['exams'] = $exams;
+        // $data['id'] = $id;
+        $data['threads'] = $this->igcse_m->all_igcse();
+
+        $this->template->title('Results Report')->build('admin/subreport', $data);
+    }
+
+    //Get Subjects by Class Group
+    function class_subjects($cls,$thread) {
+        $tid = $this->igcse_m->find($thread);
+
+        $subjects = $this->igcse_m->get_class_subjects2($cls,$tid->term);
+
+        echo json_encode($subjects);
+    }
+
+    //Get Subjects by Class Group
+    function stream_subjects($stream,$thread) {
+        $tid = $this->igcse_m->find($thread);
+
+        $subjects = $this->igcse_m->get_subjects2($stream,$tid->term);
+
+        echo json_encode($subjects);
     }
 
     //Get result Positions
@@ -1075,6 +1319,12 @@ class Admin extends Admin_Controller
             'ovrpositions' => $ovrpositions,
             'strpositions' => $result
        ];
+
+    //    echo "<pre>";
+    //         print_r($marks);
+    //         print_r($allposes);
+    //    echo "</pre>";
+    //    die;
 
        return $allposes;
     }

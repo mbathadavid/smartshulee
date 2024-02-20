@@ -44,6 +44,7 @@
 						<td><?php echo $p->description ?></td>
 						<td width=''>
 							<?php echo anchor('admin/igcse/exams/' . $p->id, 'Thread Exams', 'class="btn btn-success"'); ?>  
+							<?php echo anchor('admin/igcse/compute/' . $p->id, 'Compute Marks', 'class="btn btn-info mt-2 text-center"'); ?>
 							<?php echo anchor('admin/igcse/bulk/' . $p->id, 'Report Forms', 'class="btn btn-success"'); ?>
                                     <div class="btn-group">
                                         <a  class="btn btn-primary " href="<?php echo site_url('admin/igcse/edit/' . $p->id . '/' . $page); ?>"><span class="glyphicon glyphicon-pencil"></span></a>

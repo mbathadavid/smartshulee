@@ -366,6 +366,10 @@ echo $count;
 
                 <a  <?php if (preg_match('/^(admin\/igcse)$/i', $this->uri->uri_string())) echo 'class="active"'; ?> href="<?php echo base_url('admin/igcse'); ?>"><span class="glyphicon glyphicon-list "></span> IGCSE</a>
 
+                <a  <?php if (preg_match('/^(admin\/igcse\/report)$/i', $this->uri->uri_string())) echo 'class="active"'; ?> href="<?php echo base_url('admin/igcse/report'); ?>"><span class="glyphicon glyphicon-list "></span> IGCSE Report</a>
+
+                <a  <?php if (preg_match('/^(admin\/igcse\/sub_report)$/i', $this->uri->uri_string())) echo 'class="active"'; ?> href="<?php echo base_url('admin/igcse/sub_report'); ?>"><span class="glyphicon glyphicon-list "></span> IGCSE Subjects Report</a>
+
                 <a href="<?php echo base_url('admin/reports/exam'); ?>" 
 <?php echo (preg_match('/^(admin\/reports\/exam)/i', $this->uri->uri_string())) ? 'class="active"' : ' ' ?> >
                     <span class="glyphicon glyphicon-folder-open"></span> Exam Results Report</a> 

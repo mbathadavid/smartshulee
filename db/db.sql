@@ -147,3 +147,20 @@ ALTER TABLE `igcse_final_results`
 	ADD COLUMN `ovr_pos` INT NULL DEFAULT NULL AFTER `str_pos`,
 	ADD COLUMN `outof` INT NULL DEFAULT NULL AFTER `ovr_pos`,
 	ADD COLUMN `student` INT NULL DEFAULT NULL AFTER `outof`;
+
+ALTER TABLE `igcse_final_results`
+	ADD COLUMN `total_points` INT(11) NULL DEFAULT NULL AFTER `total`;
+
+ALTER TABLE `igcse_computed_marks`
+	ADD COLUMN `points` INT(11) NULL DEFAULT NULL AFTER `total`;
+ALTER TABLE `igcse_final_results`
+	CHANGE COLUMN `total_points` `points` INT(11) NULL DEFAULT NULL AFTER `total`;
+
+ALTER TABLE `igcse_final_results`
+	ADD COLUMN `points_outof` INT(11) NULL DEFAULT NULL AFTER `outof`;
+
+ALTER TABLE `igcse_final_results`
+	ADD COLUMN `gid` INT(11) NULL DEFAULT NULL AFTER `student`;
+
+ALTER TABLE `igcse_marks_list`
+	ADD COLUMN `gid` INT(11) NULL AFTER `out_of`;
