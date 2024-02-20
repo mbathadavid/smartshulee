@@ -171,14 +171,7 @@ class Trs extends Trs_Controller
       $marks = $this->input->post('marks');
       $user = $this->ion_auth->get_user();
 
-
-      foreach ($marks_new as $student_id => $mark_new) {
-        $this->db->set('marks', $mark_new);
-        $this->db->where('student', $student_id);
-        $this->db->where('subject', $subject);
-        $this->db->update('igcse_marks_list');
-      }
-
+    
       $update_success = false;
 
       foreach ($marks_new as $student_id => $mark_new) {
@@ -186,12 +179,14 @@ class Trs extends Trs_Controller
           'marks' => $mark_new,
           'out_of' => $outof,
           'modified_by' => $user->id,
+          'gid'=> $gd_id,
           'modified_on' => time(),
         );
 
         $update_success = $this->db->set($formdata)
           ->where('student', $student_id)
           ->where('subject', $subject)
+          ->where('exams_id', $exam)
           ->update('igcse_marks_list');
       }
       $insertion_success = false;
@@ -203,6 +198,7 @@ class Trs extends Trs_Controller
             'class' => $class,
             'subject' => $subject,
             'tid' => $thread,
+            'gid' => $gd_id,
             'exams_id' => $exam,
             'type' => $type->type,
             'out_of' => $outof,

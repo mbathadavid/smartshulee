@@ -107,6 +107,7 @@ $trs = $this->igcse_m->get_teacher($teacher);
               <th scope="col">TOTAL</th>
               <th scope="col">GRADE</th>
               <th scope="col">STREAM POSITION</th>
+              <th scope="col">OVERALL POSITION</th>
               <th scope="col">COMMENT</th>
             </tr>
           </thead>
@@ -123,7 +124,8 @@ $trs = $this->igcse_m->get_teacher($teacher);
                   <td style="text-align: center;"><?php echo $student->admission_number; ?></td>
                   <td style="text-align: center;"><?php echo $mark->total ?></td>
                   <td style="text-align: center;"><?php echo $mark->mean_grade ?></td>
-                  <td style="text-align: center;"><?php echo $i++ ?></td>
+                  <td style="text-align: center;"><?php echo $mark->str_pos ?></td>
+                  <td style="text-align: center;"><?php echo $mark->ovr_pos ?></td>
                   <td style="text-align: center;">
                     <?php if ($mark->trs_comment != '') { ?>
                       <input type="text" name="comment[<?php echo $mark->student ?>]" value="<?php echo $mark->trs_comment; ?>" class="form-control" required>
@@ -132,9 +134,9 @@ $trs = $this->igcse_m->get_teacher($teacher);
                     <?php } ?>
                   </td>
                 </tr>
-              <?php 
+              <?php
               }
-             } else { ?>
+            } else { ?>
               <tr>
                 <td colspan="5">No results Found</td>
               </tr>

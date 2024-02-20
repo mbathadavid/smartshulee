@@ -45,6 +45,13 @@ $examsid = $this->igcse_m->get_examstable($exam);
       </div>
       <div class="col-md-6">
         <div class="form-group row">
+          <div class="col-md-4"><strong>Grading System </strong><span class='required'>*</span></div>
+          <div class="col-md-8">
+            <?php
+            echo form_dropdown('grading', array('' => '') + $grading, isset($sel_gd) ? $sel_gd : '', ' class="select" data-placeholder="Select Grading System" required');
+            echo form_error('grading');
+            ?>
+          </div>
         </div>
       </div>
     </div>
