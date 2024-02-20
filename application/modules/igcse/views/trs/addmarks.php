@@ -267,3 +267,12 @@ $examsid = $this->igcse_m->get_examstable($exam);
     });
   });
 </script>
+
+<script>
+  $(document).ready(function() {
+    $('#marksForm').submit(function() {
+      // Disable the form submission button to prevent multiple submissions
+      $(this).find(':submit').attr('disabled', 'disabled');
+    });
+  });
+</script>

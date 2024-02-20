@@ -33,7 +33,7 @@ class Trs extends Trs_Controller
   }
 
 
- 
+
   /**
    * Record Exam Marks
    */
@@ -130,7 +130,7 @@ class Trs extends Trs_Controller
 
 
       $data['outof'] = $this->igcse_m->fetch_outof($exam);
-     
+
       // Retrieve students
       $students = $this->igcse_m->get_students($class);
       $data['students'] = $this->igcse_m->get_students($class);
@@ -171,7 +171,7 @@ class Trs extends Trs_Controller
       $marks = $this->input->post('marks');
       $user = $this->ion_auth->get_user();
 
-    
+
       $update_success = false;
 
       foreach ($marks_new as $student_id => $mark_new) {
@@ -179,7 +179,7 @@ class Trs extends Trs_Controller
           'marks' => $mark_new,
           'out_of' => $outof,
           'modified_by' => $user->id,
-          'gid'=> $gd_id,
+          'gid' => $gd_id,
           'modified_on' => time(),
         );
 
@@ -327,9 +327,9 @@ class Trs extends Trs_Controller
       } elseif ($insert_success) {
         $this->session->set_flashdata('insertion_success', 'Insertion successful!');
       } else {
-         redirect('igcse/trs/addcomment/');
+        redirect('igcse/trs/addcomment/');
       }
-      
+
       redirect('igcse/trs/addcomment/' . $class);
     }
   }
@@ -337,7 +337,7 @@ class Trs extends Trs_Controller
   /**
    * Record Attendance
    */
-  
+
   function error()
   {
     if (!$this->ion_auth->logged_in()) {
