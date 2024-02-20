@@ -142,6 +142,18 @@ class Igcse_m extends MY_Model{
         return $query->row(); // Return the single row
     }
 
+    // public function get_exams_by_tid($exid)
+    // {
+    //     $this->db->select('*');
+    //     $this->db->from('igcse_exams');
+    //     $this->db->where('tid', $exid);
+    //     $this->db->limit(1); // Limit the result to 1 row
+    //     $query = $this->db->get();
+
+    //     return $query->row(); // Return the single row
+    // }
+    
+
      //Find Actual IGCSE Exam
      function find_igcse_exam($id) {
         return $this->db->where(array('id' => $id))->get('igcse_exams')->row();
@@ -725,16 +737,6 @@ function populate($table,$option_val,$option_text)
         return $query->result(); // Return the single row
     }
 
-    public function get_exams_by_tid($exid)
-    {
-        $this->db->select('*');
-        $this->db->from('igcse_exams');
-        $this->db->where('tid', $exid);
-        $this->db->limit(1); // Limit the result to 1 row
-        $query = $this->db->get();
-
-        return $query->row(); // Return the single row
-    }
     
     function get_grading_system()
     {

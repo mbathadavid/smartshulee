@@ -189,14 +189,14 @@
                                 </ul>
                             </div>
                            
-                            <div class="btn-group">
+                            <!-- <div class="btn-group">
                                 <a class="btn btn-primary " href=""><span class="glyphicon glyphicon-pencil"></span></a>
                                 <?php
                                 if ($this->ion_auth->is_in_group($this->user->id, 1)) {
                                 ?>
                                     <a class='btn btn-danger' onClick="return confirm('<?php echo lang('web_confirm_delete') ?>')" href='<?php echo site_url('admin/igcse/exams/delete/' . $p->id); ?>'><span class="glyphicon glyphicon-remove"></span> </a>
                                 <?php } ?>
-                            </div>
+                            </div> -->
                         </td>
                     </tr>
                 <?php endforeach ?>
