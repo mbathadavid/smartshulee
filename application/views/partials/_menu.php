@@ -214,3 +214,12 @@
 
 <?php  $mactive = ($this->uri->rsegment(1) == 'igcse')  ? "class='selected'" : "" ?>
 <li <?php echo $mactive?>><a href="igcse/" style="background-position: 0px 0px;">Igcse</a></li>
+
+<?php  $mactive = ($this->uri->rsegment(1) == 'boarding')  ? "class='selected'" : "" ?>
+<li <?php echo $mactive?>><a href="boarding/" style="background-position: 0px 0px;">Boarding</a></li>
+
+<?php  $mactive = ($this->uri->rsegment(1) == 'clubs')  ? "class='selected'" : "" ?>
+<li <?php echo $mactive?>><a href="clubs/" style="background-position: 0px 0px;">Clubs</a></li>
+
+<?php  $mactive = ($this->uri->rsegment(1) == 'clubs')  ? "class='selected'" : "" ?>
+<li <?php echo $mactive?>><a href="clubs/" style="background-position: 0px 0px;">Clubs</a></li>

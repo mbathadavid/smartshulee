@@ -5,7 +5,6 @@ $classes_with_teachers = $this->igcse_m->get_class_with_teacher();
 $subs = $this->igcse_m->populate('subjects', 'id', 'name');
 $examsid = $this->igcse_m->get_examstable($exam);
 
-
 ?>
 
 <div class="portlet mt-2">
