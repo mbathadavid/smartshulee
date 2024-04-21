@@ -12,9 +12,15 @@ foreach ($this->classlist as $ssid => $s) {
     $sslist[$ssid] = $s['name'];
 }
 
-// echo "<pre>";
-// print_r($classsubjects);
-// echo "</pre>";
+// $s1 = $rank ? '' : ' checked="checked" ';
+// $s2 = '';
+// $s3 = '';
+// if ($rank)
+// {
+//     $s1 = $rank == 1 ? ' checked="checked" ' : '';
+//     $s2 = $rank == 2 ? ' checked="checked" ' : '';
+//     $s3 = $rank == 3 ? ' checked="checked" ' : '';
+// }
 ?>
 <div class="toolbar">
     <div class="row row-fluid">
@@ -98,21 +104,6 @@ if (isset($results)) {
 
         $prevresults = $this->igcse_m->prev_score($comparison,$result->student);
 
-        $subscount = 0;
-        $scoreoutof = 0;
-        $subsexclude = [9,10,11];
-        $subsinclude = [8,7,6,32];
-        $clsexclude = [4,5,6];
-        foreach ($subscores as $key => $score) {
-            if (in_array($result->class_group,$clsexclude) && !in_array($score->subject,$subsinclude)) {
-                continue;
-            }
-            $subscount++;
-            $scoreoutof += $score->total;
-        }
-
-
-
 ?>
         <div class="invoice">
             <!-- Transcript Start -->
@@ -159,13 +150,7 @@ if (isset($results)) {
                 <div class="col-md-4 col-lg-4" style="display: flex;">
                     <div style="width: 60%;">
                         <h6 class="text-center"><b>Mean</b></h6>
-                        <h6 class="text-center">
-                            <b>
-                            <?php 
-                                echo  $result->mean_grade ?>|<?php echo  $result->mean_mark; 
-                            ?>%
-                            </b>
-                        </h6>
+                        <h6 class="text-center"><b><?php echo  $result->mean_grade ?>|<?php echo  $result->mean_mark ?>%</b></h6>
                     </div>
                     <div style="width: 40%;">
                         <h5>
@@ -194,21 +179,7 @@ if (isset($results)) {
                 <div class="col-md-4 col-lg-4" style="display: flex;">
                     <div style="width: 70%;">
                         <h6 class="text-center"><b>Total</b></h6>
-                        <h6 class="text-center">
-                            <b>
-                                <?php
-                                echo $scoreoutof."/";
-                                $clsexclude = [4,5,6];
-                                if (in_array($result->class_group,$clsexclude)) {
-                                    echo $subscount * 50;
-                                } else {
-                                    echo $subscount * 100;
-                                }
-
-                                // echo  $result->total ?><?php  $scoreoutof 
-                                ?>
-                            </b>
-                        </h6>
+                        <h6 class="text-center"><b><?php echo  $result->total ?>/<?php echo  $result->outof ?></b></h6>
                     </div>
                     <div style="width: 30%;">
                         <h5>
@@ -338,18 +309,10 @@ if (isset($results)) {
                         </thead>
                         <tbody>
                             <?php 
-                                $subsexclude = [9,10,11];
-                                $subsinclude = [8,7,6,32];
-                                $clsexclude = [4,5,6];
                                 foreach ($subscores as $key => $score) {
-                                    if (in_array($result->class_group,$clsexclude) && !in_array($score->subject,$subsinclude)) {
-                                        continue;
-                                    }
-                                    $subscount++;
-                                    $scoreoutof += $score->total;
                             ?>
                                 <tr>
-                                    <td><?php echo $subjects[$score->subject].' - ('.$score->subject.')' ?></td>
+                                    <td><?php echo $subjects[$score->subject] ?></td>
                                     <td><?php echo $score->total ?></td>
                                     <td>
                                         <?php

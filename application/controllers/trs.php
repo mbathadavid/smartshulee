@@ -2052,6 +2052,7 @@ class Trs extends Trs_Controller
         $data['updType'] = 'create';
         $data['page'] = '';
         $data['exams'] = $this->exams_m->list_exams();
+        
         //Rules for validation
         $this->form_validation->set_rules($this->_rec_validation());
 

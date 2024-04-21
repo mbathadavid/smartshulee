@@ -16,15 +16,14 @@
  $active_record = TRUE;
 
  $db['default']['hostname'] = 'localhost';
- $db['default']['username'] = 'root';
- $db['default']['password'] = '';
-//  $db['default']['database'] = 'sms_cbc';
- $db['default']['database'] = 'sms_jpscbc';
+ $db['default']['username'] = 'sms_jpscamb';
+ $db['default']['password'] = '8FbcbaJCZl7Qaw8S';
+ $db['default']['database'] = 'sms_jpscamb';
  $db['default']['dbdriver'] = 'mysqli';
  $db['default']['dbprefix'] = '';
  $db['default']['pconnect'] = TRUE;
- // $db['default']['db_debug'] = ($_SERVER["REMOTE_ADDR"] == '62.8.68.235') ? TRUE : FALSE;
- $db['default']['db_debug'] = TRUE;
+ //$db['default']['db_debug'] = ($_SERVER["REMOTE_ADDR"] == '196..xx.xx.135') ? TRUE : FALSE;
+ $db['default']['db_debug'] = FALSE;
  $db['default']['cache_on'] = FALSE;
  $db['default']['cachedir'] = '';
  $db['default']['char_set'] = 'utf8';
@@ -65,9 +64,7 @@
  $db['smsq']['autoinit'] = TRUE;
  $db['smsq']['stricton'] = FALSE;
 
-
-
-$db['evt']['hostname'] = "localhost";
+ $db['evt']['hostname'] = "localhost";
 $db['evt']['username'] = "sms_product";
 $db['evt']['password'] = "PXlcwh1xXX";
 $db['evt']['database'] = "sms_product";
@@ -81,6 +78,6 @@ $db['evt']['char_set'] = "utf8";
 $db['evt']['dbcollat'] = "utf8_general_ci";
 $db['evt']['swap_pre'] = "";
 $db['evt']['autoinit'] = TRUE;
-$db['evt']['stricton'] = FALSE;
+$db['evt']['stricton'] = FALSE; 
  /* End of file database.php */
  /* Location: ./application/config/database.php */

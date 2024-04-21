@@ -165,7 +165,7 @@ class Trs extends Trs_Controller
 
 
 
-      $data['outof'] = $this->igcse_m->fetch_outof($thread,$exam, $subject);
+      $data['outof'] = $this->igcse_m->fetch_outof($exam);
 
       // Retrieve students
       $students = $this->igcse_m->get_students($class);
@@ -262,7 +262,7 @@ class Trs extends Trs_Controller
             $subunit = explode('_',$key)[0];
 
             $sub_data = array(
-              'tid' => $this->input->post('thread'),
+              'tid' => $thread,
               'subject' => $this->input->post('subject'),
               'subunit' => $subunit,
               'marks' => $mark,

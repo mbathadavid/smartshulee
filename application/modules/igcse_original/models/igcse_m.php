@@ -148,25 +148,6 @@ class Igcse_m extends MY_Model{
         return $subs;
      }
 
-     function get_subjects_op2($class,$term) {
-        $list = $this->db
-                    // ->where('term',$term)
-                    ->where('class_id', $class)
-                    ->get('subjects_classes')
-                    ->result();
-
-        $subs = [];
-
-        foreach ($list as $key => $l) {
-            $subject = $this->get_subject($l->subject_id);
-
-            $subs[] = $subject->id;
-        }
-
-
-        return $subs;
-     }
-
     public function get_exams_by_tid($exid)
     {
         $this->db->select('*');
@@ -291,12 +272,9 @@ class Igcse_m extends MY_Model{
      }
 
      function student_scores($tid,$stu) {
-        // print_r($subids);
-        // die;
         return $this->db
                     ->where(array('tid' => $tid))
                     ->where(array('student' => $stu))
-                    // ->where_in(array('subject' => $subids))
                     ->get('igcse_computed_marks')
                     ->result();
      }
@@ -320,11 +298,6 @@ class Igcse_m extends MY_Model{
                 ->where(array('student' => $stu))
                 ->get('igcse_computed_marks')
                 ->row();
-     }
-
-     //Get class group subjects
-     function class_group_subjects() {
-
      }
 
      //Get Exams
@@ -415,28 +388,6 @@ class Igcse_m extends MY_Model{
                 'name' => $subject->name,
                 'short_name' => $subject->short_name
             ];
-        }
-
-        return $subs;
-     }
-
-     //Get Subjects by Class
-     function get_class_subjects_op2($group = false,$term = false) {
-        $streams = $this->get_streams($group);
-        $subjects = $this->populate('subjects','id','name');
-
-        $list = $this->db
-                    //  ->where('term',$term)
-                     ->where_in('class_id', $streams)
-                     ->get('subjects_classes')
-                     ->result();
-
-        $subs = [];
-
-        foreach ($list as $key => $l) {
-            $subject = $this->get_subject($l->subject_id);
-
-            $subs[] = $subject->id;
         }
 
         return $subs;
@@ -548,12 +499,7 @@ class Igcse_m extends MY_Model{
 
      //Get final results by students 
      function results($tid,$students = array()) {
-        return $this->db
-                    ->where(array('tid' => $tid))
-                    ->where_in('student',$students)
-                    ->order_by('total','DESC')
-                    ->get('igcse_final_results')
-                    ->result();
+        return $this->db->where(array('tid' => $tid))->where_in('student',$students)->order_by('total','DESC')->get('igcse_final_results')->result();
      }
 
      //Function to get marks list
@@ -706,12 +652,10 @@ function populate($table,$option_val,$option_text)
     }
 
 
-    function fetch_outof($tid,$exam,$sub)
+    function fetch_outof($exam)
     {
 
-        $query = $this->db->where('tid', $tid)
-            ->where('exams_id', $exam)
-            ->where('subject', $sub)
+        $query = $this->db->where('exams_id', $exam)
             ->get('igcse_marks_list');
         return $query->row();
     }

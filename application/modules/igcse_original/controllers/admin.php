@@ -734,166 +734,6 @@ class Admin extends Admin_Controller
     {
         // echo $gid;
         // die;
-        $excludearr = [4,5,6];
-
-        $exthread = $this->igcse_m->find($tid);
-        $catsweight = $exthread->cats_weight;
-        $mainweight = $exthread->main_weight;
-
-
-        //Check 
-        $totalscores = [];
-        $substuscores = [];
-        foreach ($studentmks as $key => $sub) {
-            $subjects = $sub;
-
-            $subscores = [];
-            foreach ($subjects as $ky => $marks) {
-                $marks = $marks;
-                $cats = [];
-                $mains = [];
-
-                foreach ($marks as $yk => $mark) {
-                    if ($mark['type'] == 2) {
-                        $cats[] = [
-                            'score' => $mark['mark'],
-                            'outof' => $mark['outof']
-                        ];
-                    } elseif ($mark['type'] == 1) {
-                        $mains[] = [
-                            'score' => $mark['mark'],
-                            'outof' => $mark['outof']
-                        ];
-                    }
-                }
-
-                //Get the Convertions
-                $totalRatio = 0;
-                $totalOutOf = 0;
-                $totalcats = 0;
-
-                // Iterate through each element in the array
-                foreach ($cats as $cat) {
-                    $totalcats += $cat['score'];
-                    $totalRatio += $cat['score'];
-                    $totalOutOf += $cat['outof'];
-                }
-
-                //Deal with CAT Ration
-                if ($catsweight == 0) {
-                    $totalCatRatio = 0;
-                } else {
-                    $totalCatRatio = $totalRatio / $totalOutOf;
-                }
-                
-                // $totalCatRatio = $totalRatio / $totalOutOf;
-
-                if ($totalCatRatio > $catsweight) {
-                    $totalCatRatio = $catsweight;
-                }
-
-                //Exclude Lower Primary
-                // if (in_array($mark['classgrp'],$excludearr)) {
-                //     $catstotal = $totalcats;
-                // } else {
-                //     $catstotal = round($totalCatRatio * $catsweight);
-                // }
-
-                $catstotal = round($totalCatRatio * $catsweight);
-                $actualcattotal = $catstotal > $catsweight ? $catsweight : $catstotal;
-
-                //Work on Compressing the Mains
-                $totalmainRatio = 0;
-                $totalmainOutof = 0;
-                $totalmains = 0;
-
-                foreach ($mains as $main) {
-                    $totalmains += $main['score']; 
-                    $totalmainRatio += $main['score'];
-                    $totalmainOutof += $main['outof'];
-                }
-
-                //Deal with Mains Ration
-                if ($mainweight == 0) {
-                    $totalMainRatio = 0;
-                } else {
-                    $totalMainRatio = $totalmainRatio / $totalmainOutof;
-                }
-
-                // $totalMainRatio = $totalmainRatio / $totalmainOutof;
-
-                if ($totalMainRatio > $mainweight) {
-                    $totalMainRatio = $mainweight;
-                }
-                // Multiply the total ratio by 30
-                //Exclude Lower Primary
-                if (in_array($mark['classgrp'],$excludearr)) {
-                    // $maintotal = $totalmains;
-                    $maintotal = round($totalMainRatio * 50);
-                } else {
-                    $maintotal = round($totalMainRatio * $mainweight);
-                }
-                
-                // $maintotal = round($totalMainRatio * $mainweight);
-                if (in_array($mark['classgrp'],$excludearr)) {
-                    $actualmaintotal = $maintotal;
-                } else {
-                    $actualmaintotal = $maintotal > $mainweight ? $mainweight : $maintotal;
-                }
-                
-                // $actualmaintotal = $maintotal > $mainweight ? $mainweight : $maintotal;
-
-                //Get the total Score
-                $totalscore = $actualcattotal + $actualmaintotal;
-
-                //Control Total
-                // if (in_array($mark['classgrp'],$excludearr)) {
-                //     $actualtotal = $totalscore > $catsweight + $mainweight ? $catsweight + $mainweight : 50;
-                // } else {
-                //     $actualtotal = $totalscore > $catsweight + $mainweight ? $catsweight + $mainweight : $totalscore;
-                // }
-                $actualtotal = $totalscore > $catsweight + $mainweight ? $catsweight + $mainweight : $totalscore;
-                // $actualcattotal = $totalscore;
-
-                //Match Score with the grades
-                $grading = $this->igcse_m->retrieve_grading($gid);
-                foreach ($grading as $gy => $grad) {
-                    if ($actualtotal >= $grad->minimum_marks && $actualtotal <= $grad->maximum_marks) {
-                        $grade = $grad->grade;
-                        $points = $grad->points;
-                        $comment = $grad->comment;
-                    }
-                }
-
-                $subscores[$ky] = [
-                    'class' => $mark['class'],
-                    'classgrp' => $mark['classgrp'],
-                    'catscore' => $actualcattotal,
-                    'mainscore' => $actualmaintotal,
-                    'total' => $actualtotal,
-                    'points' => $points,
-                    'grade' => $grade,
-                    'comment' => $comment
-                ];
-            }
-
-            $totalscores[$key] = $subscores;
-        }
-
-        // echo "<pre>";
-        //     print_r($totalscores);
-        // echo "</pre>";
-        // die;
-        // $gradedscores = $this->generate_ranks($totalscores);
-
-        return $totalscores;
-    }
-
-    //Combine the marks
-    public function combine_marks_2($tid, $studentmks, $gid)
-    {
-        // echo $gid;
-        // die;
 
         $exthread = $this->igcse_m->find($tid);
         $catsweight = $exthread->cats_weight;
@@ -1253,150 +1093,6 @@ class Admin extends Admin_Controller
         }
     }
 
-    public function record_2($thid, $exid, $id)
-    {
-        $students = [];
-        $sb = 0;
-        //push class name to next view
-        $class_name = $this->exams_m->populate('class_groups', 'id', 'name');
-        $exam = $this->igcse_m->find1($thid);
-        $tar = $this->igcse_m->get_stream($id);
-        $class_id = $tar->class;
-        $stream = $tar->stream;
-        $heading = 'Exam Marks For: <span style="color:blue">' . $class_name[$class_id] . '</span>';
-        $exam_type = $this->igcse_m->get_exams_by_tid($thid);
-
-
-        $subjects = $this->exams_m->get_subjects($id, $exam->term);
-
-        $sel = 0;
-        if ($this->input->get('sb')) {
-            $sb = $this->input->get('sb');
-            $data['selected'] = isset($subjects[$sb]) ? $subjects[$sb] : [];
-            $row = $this->igcse_m->fetch_subject($sb);
-            $rrname = $row ? ' - ' . $row->name : '';
-            $heading = 'Exam Marks For: <span style="color:blue">' . $class_name[$class_id] . $rrname . '</span>';
-
-            if ($row->is_optional == 2) {
-                $sel = 1;
-            }
-
-            $data['checkmarks'] = $this->igcse_m->check_marks($thid, $exid, $sb);
-            $students = $this->exams_m->get_students($class_id, $stream);
-        }
-
-        $data['list_subjects'] = $this->exams_m->list_subjects();
-        $data['subjects'] = $subjects;
-        $data['class_name'] = $heading;
-        $data['assign'] = $sel;
-        $data['count_subjects'] = $this->exams_m->count_subjects($class_id, $exam->term);
-        $data['full_subjects'] = $this->exams_m->get_full_subjects();
-        $data['thid'] = $thid;
-        $data['exid'] = $exid;
-        $data['sb'] = $sb;
-
-        //create control variables
-        $data['updType'] = 'create';
-        $data['page'] = '';
-        $data['exams'] = $this->exams_m->list_exams();
-        $data['grading'] = $this->exams_m->get_grading_system();
-        //Rules for validation
-        $this->form_validation->set_rules($this->rec_validation());
-
-        //validate the fields of form
-        if ($this->form_validation->run()) {
-            if ($this->input->get('sb')) {
-                // echo "<pre>";
-                //     print_r($this->input->post());
-                // echo "</pre>";
-                // die;
-
-                $user = $this->ion_auth->get_user();
-                $inc = [];
-                $mkpost = $this->input->post();
-                if (isset($mkpost['done'])) {
-                    $inc = $mkpost['done'];
-                }
-                $sb = $this->input->get('sb');
-                // $gd_id = $this->input->post('grading');
-                $marks = $this->input->post('marks');
-                $units = $this->input->post('units');
-                $gid = $this->input->post('grading');
-                $k = 0;
-                $kk = 0;
-
-                // $this->exams_m->set_grading($exid, $id, $sb, $gd_id, $user->id);
-                $perf_list = $this->_prep_marks($sb, $exid, $marks, $units);
-
-                // echo "<pre>";
-                //     print_r($this->input->post());
-                //     // print_r($perf_list);
-                // echo "</pre>";
-                // die;
-
-                foreach ($perf_list as $dat) {
-                    $dat = (object) $dat;
-
-                    $mm = (object) $dat->marks;
-                    $mkcon = $mm->marks ? $mm->marks : 0;
-
-                    $fvalues = [
-                        'tid' => $thid,
-                        'class' => $id,
-                        'class_group' => $class_id,
-                        'exams_id' => $dat->exams_id,
-                        'student' => $dat->student,
-                        'marks' => $mkcon,
-                        'type' =>  $exam_type->id,
-                        'out_of' =>  $dat->outof,
-                        'gid' => $gid,
-                        'subject' => $mm->subject,
-                        'created_by' => $dat->created_by,
-                        'created_on' => time()
-                    ];
-
-                    //Check if marks Exists to Update
-                    $ckmarks = $this->igcse_m->check_student_marks($thid, $exid, $sb, $dat->student);
-
-                    if ($ckmarks) {
-                        $k++;
-                        $done = $this->igcse_m->update_marks_attributes($ckmarks->id, ['out_of' => $dat->outof,'gid' => $gid,'marks' => $mkcon, 'modified_on' => time(), 'modified_by' => $user->id]);
-                    } else {
-                        $kk++;
-                        $ok = $this->exams_m->insert_marks1($fvalues);
-                    }
-                }
-
-                // die;
-                // if ($ok) {
-                // $this->acl->audit($ok, implode(' , ', $svalues));
-                $mess = $kk . ' Records Created Successfully. ' . $k . ' Records Updated';
-
-                $this->session->set_flashdata('message', array('type' => 'success', 'text' => $mess));
-                // } else {
-                //     $this->session->set_flashdata('message', array('type' => 'error', 'text' => lang('web_create_failed')));
-                // }
-            } else {
-                $this->session->set_flashdata('message', array('type' => 'error', 'text' => 'Subject Not Specified'));
-            }
-            redirect('admin/igcse/exams/' . $thid);
-        } else {
-            $get = new StdClass();
-            foreach ($this->rec_validation() as $field) {
-                $get->{$field['field']} = set_value($field['field']);
-            }
-
-            $data['sb'] = $sb;
-            $data['result'] = $get;
-            $data['class_id'] = $id;
-            $data['exam_id'] = $exid;
-            $data['students'] = $students;
-            $data['igcse_exam'] = $this->igcse_m->find_igcse_exam($exid);
-
-            $this->template->title('Record Exam Marks')->build('admin/records', $data);
-        }
-    }
-
 
     function _prep_marks($subject, $exm_mgmt_id, $marks = [], $units = [])
     {
@@ -1469,16 +1165,9 @@ class Admin extends Admin_Controller
 
             if (!empty($clsgroup)) {
                 $students = $this->igcse_m->get_students_by_group($clsgroup);
-                $clssubjects = $this->igcse_m->get_class_subjects_op2($clsgroup,$thread->term);
             } else {
                 $students = $this->igcse_m->get_students_by_stream($stream);
-                $clssubjects = $this->igcse_m->get_subjects_op2($stream,$thread->term);
             }
-
-            // echo "<pre>";
-            //     print_r($clssubjects);
-            // echo "</pre>";
-            // die;
             
             //Retrieve Final Results
             if (empty($students)) {
@@ -1499,9 +1188,6 @@ class Admin extends Admin_Controller
                 $data['computedmarks'] = $computedmarks;
                 $data['compareresults'] = $compareresults;
             }
-
-            $data['classsubjects'] = $clssubjects;
-
         }
 
         
@@ -1509,7 +1195,7 @@ class Admin extends Admin_Controller
         $data['thread'] = $thread;
         $data['exams'] = $exams;
         $data['id'] = $id;
-        
+
         $this->template->title('Report Forms')->build('admin/bulk', $data);
     }
 

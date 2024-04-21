@@ -154,7 +154,7 @@ if ($this->input->get('sb')) {
                 $outs = $sel->outs;
                 $tot_class = 'totd_' . $sb;
                 foreach ($sel->units as $utk => $utt) {
-                  // echo $utk;
+                  echo $utk;
               ?>
                   <td>
                     <?php
@@ -166,13 +166,29 @@ if ($this->input->get('sb')) {
                       // $uval = 9;
                     }
 
-                    $checksubunitmarks = $this->igcse_m->find_submarks($thid,$sb,$exid,$std->id,$utk);
+                    // $checksubunitmarks = $this->igcse_m->find_submarks($thid,$sb,$exid,$std->id,$utk);
 
-                    if ($checksubunitmarks) {
-                      $uval = $checksubunitmarks->marks;
-                    }                  
+                    // echo "<pre>";
+                    //   print_r($checksubunitmarks);
+                    // echo "</pre>";
+                    // echo "<pre>";
+                    //   print_r($thid);
+                    // echo "</pre>";
+                    // echo "<pre>";
+                    //   print_r($sb);
+                    // echo "</pre>";
+                    // echo "<pre>";
+                    //   print_r($exid);
+                    // echo "</pre>";
+                    // echo "<pre>";
+                    //   print_r($std->id);
+                    // echo "</pre>";
+                    // echo "<pre>";
+                    //   print_r($utk);
+                    // echo "</pre>";
+                  
 
-                    // echo $uval;
+                    echo $uval;
                     $unm = 'units[' . $post->id . '][' . $utk . ']';
                     echo form_input($unm, $uval, ' title="' . $cap . '" placeholder="Sub Unit Marks" class="umarks mkd_' . $sb . '" ');
                     echo form_error('units');

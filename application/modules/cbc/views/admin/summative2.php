@@ -8,6 +8,8 @@ foreach ($this->classlist as $cid => $cl)
     $cc = (object) $cl;
     $cl_s[$cid] = $cc->name;
 }
+
+$assessment = $this->input->post('assessment');
 ?>
 
 
@@ -47,19 +49,32 @@ foreach ($this->classlist as $cid => $cl)
         </div>
         <div class='form-group'>
             <div class="col-md-2">&nbsp; </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 Term
                 <?php
                 echo form_dropdown('term', array('' => '') + $this->terms, $this->input->post('term'), ' class="tsel" placeholder="Select Term" ');
                 echo form_error('term');
                 ?>
             </div>
-            <div class="col-md-1">&nbsp; </div>
-            <div class="col-md-4">
+            <!-- <div class="col-md-1">&nbsp; </div> -->
+            <div class="col-md-3">
                 Year
                 <?php
                 echo form_dropdown('year', array('' => '') + $yrs, $this->input->post('year') ? $this->input->post('year') : date('Y'), ' class="tsel" placeholder="Select Year" ');
                 echo form_error('year');
+                ?>
+            </div>
+            <div class="col-md-3">
+                Assessment
+                <?php
+                $assessments = array(
+                    '1' => 'Opener Exam',
+                    '2' => 'Mid Term',
+                    '3' => 'End Term'
+                );
+
+                echo form_dropdown('assessment', array('' => '') + $assessments, $this->input->post('assessment') ? $this->input->post('assessment') : date('Y'), ' class="tsel" placeholder="Select Assessment" ');
+                echo form_error('assessment');
                 ?>
             </div>
         </div>
@@ -96,7 +111,15 @@ foreach ($this->classlist as $cid => $cl)
                 <img src="<?php echo base_url('uploads/files/' . $this->school->document); ?>" style="height:68px;" alt="header">
             </div>
             <div class="text-center">
-                <h4><strong>SUMMATIVE REPORT</strong></h4>
+                <?php 
+                    $assessments = array(
+                        '1' => 'Opener Exam',
+                        '2' => 'Mid Term',
+                        '3' => 'End Term'
+                    );
+                ?>
+
+                <h4><strong><?php echo strtoupper($assessments[$assessment]) ?> SUMMATIVE REPORT</strong></h4>
                 <h4 class="text-uppercase"><ins>NAME:</ins> <?php echo $r->student->first_name . ' ' . $r->student->last_name; ?>  &nbsp;&nbsp;&nbsp;<ins>ADM.</ins> &nbsp;&nbsp;&nbsp; <?php echo $r->student->admission_number; ?> &nbsp;&nbsp;&nbsp; <ins>Age:</ins> <?php echo $r->student->age; ?></h4>
                 <p>
                     <span class="text-uppercase"><?php echo $r->student->cl->name ?> &nbsp; Term <?php echo $term; ?> - <?php echo $year; ?></span>
@@ -125,25 +148,26 @@ foreach ($this->classlist as $cid => $cl)
                             <tr class="fbg">
                                 <td>#</td>
                                 <td class="text-uppercase">SUBJECT</td>
-                                <td>Opener Exam </td>
-                                <td> Mid Term</td>
-                                <td>End of Term </td>
-                                <td> Term Average</td>
+                                <th>Score</th>
+                                <!-- <td>Subject Teacher </td> -->
+                                <td>Teacher's Comment</td>
                             </tr>
                             <?php
+
                             $k = 0;
                             foreach ($r->assess as $sr)
                             {
                                 $s = (object) $sr;
                                 $k++;
+
+                                $exc = explode('/',$s->exams['exam']);
                                 ?>
                                 <tr>
                                     <td><?php echo $k ?>.</td>
                                     <td class="text-uppercase"><?php echo $s->subject; ?></td>
-                                    <td><?php echo isset($s->exams['exam_1']) ? $s->exams['exam_1'] : ''; ?></td>
-                                    <td><?php echo isset($s->exams['exam_2']) ? $s->exams['exam_2'] : ''; ?></td>
-                                    <td><?php echo isset($s->exams['exam_3']) ? $s->exams['exam_3'] : ''; ?></td>
-                                    <td><?php echo isset($s->exams['exam_4']) ? $s->exams['exam_4'] : ''; ?></td>
+                                    <td><?php echo $exc[0]; ?></td>
+                                    <!-- <td><?php echo isset($s->exams['exam_2']) ? $s->exams['exam_2'] : ''; ?></td> -->
+                                    <td><?php echo $exc[1]; ?></td>
                                 </tr>
                             <?php } ?>
                         </tbody>

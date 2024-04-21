@@ -188,6 +188,151 @@ class Admin extends Admin_Controller
         $this->template->title(' Summative Assessment')->build('admin/summative', $data);
     }
 
+    //Summative Report
+    function summative_opt2() {
+        $this->load->library('Dates');
+        $result = [];
+        $list = [];
+        if ($this->input->post())
+        {
+            $class = $this->input->post('class');
+            $students = $this->input->post('students');
+            $term = $this->input->post('term');
+            $year = $this->input->post('year');
+            $assessment = $this->input->post('assessment');
+
+            if ($students)
+            {
+                $list = $students;
+            }
+            else
+            {
+                $list = $this->cbc_m->fetch_students($class,$term, $year);
+            }
+
+            $result = [];
+            foreach ($list as $key => $k_id)
+            {
+                $assess = [];
+                $summ = $this->cbc_m->get_summ_st($k_id, $term, $year);
+
+                if (!empty($summ))
+                {
+                    $rw = $this->cbc_m->fetch_class($summ->class);
+
+                    $subjects = empty($rw) ? [] : $this->cbc_m->get_subjects($rw->class);
+
+                    $fsub = [];
+                    $ids = [];
+                    foreach ($subjects as $s)
+                    {
+                        $fsub[$s->subject] = $s->name;
+                        $ids[] = $s->subject;
+                    }
+
+                    $ex = [];
+                    $saved = [];
+                    $merged = [];
+
+                    $subs = $this->cbc_m->get_summ_ratings2($summ->id,$assessment);
+
+                    foreach ($subs as $s)
+                    {
+                        $ex[$s->exam] = $s->exam;
+                        $saved[$k_id][$s->subject][$s->exam] = $s->rating.'/'.$s->trs_comment;
+                    }
+
+                    foreach ($saved as $st => $fs)
+                    {
+                        foreach ($ids as $id)
+                        {
+                            if (!isset($fs[$id]))
+                            {
+                                foreach ($ex as $ex_id)
+                                {
+                                    $fs[$id][$ex_id] = '';
+                                }
+                            }
+                        }
+                        $nw_mk = [];
+                        foreach ($fs as $sub_id => $exams)
+                        {
+                            foreach ($ex as $ex_id)
+                            {
+                                if (!isset($exams[$ex_id]))
+                                {
+                                    $exams[$ex_id] = '';
+                                }
+                            }
+                            ksort($exams);
+                            $nw_mk[$sub_id] = $exams;
+                        }
+                        ksort($nw_mk);
+                        $merged[$st] = $nw_mk;
+                    }
+
+                    foreach ($merged as $student => $rbk)
+                    {
+                        foreach ($rbk as $st_id => $mk)
+                        {
+                            $subj = isset($fsub[$st_id]) ? $fsub[$st_id] : ' - ';
+                            $rmk = [];
+                            $tc = [];
+
+                            foreach ($mk as $k_m => $m)
+                            {
+                                // if ($k_m != $assessment) {
+                                //     continue;
+                                // }
+
+                                $rmk['exam'] = $m;
+
+                            }
+
+                            $assess[] = ['subject' => $subj, 'exams' => $rmk];
+                        }
+                    }
+                }
+                $result[$k_id]['summ'] = $summ;
+                $result[$k_id]['assess'] = $assess;
+
+                $rw_s = $this->worker->get_student($k_id);
+                $rw_s->age = $rw_s->dob > 10000 ? $this->dates->createFromTimeStamp($rw_s->dob)->diffInYears() : '-';
+                $result[$k_id]['student'] = $rw_s;
+            }
+
+            // die;
+
+            $data['term'] = $term;
+            $data['year'] = $year;
+        }
+
+
+        if($this->input->post('send_sms'))
+        {
+            $class = $this->input->post('class');
+            $students = $this->input->post('students');
+            $term = $this->input->post('term');
+            $year = $this->input->post('year');
+
+            if ($students)
+            {
+                $list = $students;
+            }
+            else
+            {
+                $list = $this->cbc_m->fetch_students($class,$term, $year);
+            }
+
+            $this->sms_summative($list);
+        }
+        $data['list'] = $list;
+        $data['result'] = $result;
+        //load view
+        $this->template->title(' Summative Assessment')->build('admin/summative2', $data);
+    }
+
+    
 
     function sms_summative($list)
     {
