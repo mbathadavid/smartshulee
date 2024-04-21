@@ -155,7 +155,16 @@ class Cbc_m extends MY_Model
         {
             $this->db->where(['exam' => $exam]);
         }
-        return $this->db->select('id,exam,subject, rating')->where(['cbc_id' => $cbc_id])->get('cbc_summ_score')->result();
+        return $this->db->select('id,exam,subject, rating,trs_comment')->where(['cbc_id' => $cbc_id])->get('cbc_summ_score')->result();
+    }
+
+    function get_summ_ratings2($cbc_id, $exam)
+    {
+        if ($exam)
+        {
+            $this->db->where(['exam' => $exam]);
+        }
+        return $this->db->select('id,exam,subject, rating,trs_comment')->where(['cbc_id' => $cbc_id])->get('cbc_summ_score')->result();
     }
 
     function get_strand_rating($id, $strand)

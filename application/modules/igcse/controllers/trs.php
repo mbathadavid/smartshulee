@@ -23,6 +23,7 @@ class Trs extends Trs_Controller
     $this->load->model('trs_m');
     $this->load->model('igcse_m');
     $this->load->model('evideos/evideos_m');
+    $this->load->model('teachers/teachers_m');
     $this->load->model('messages/messages_m');
     $this->load->model('lesson_plan/lesson_plan_m');
     $this->load->model('assignments/assignments_m');
@@ -64,6 +65,40 @@ class Trs extends Trs_Controller
     $data['per'] = $config['per_page'];
     $data['classes'] = $this->trs_m->list_my_classes();
 
+    // Check whether logged in poersin is class teacher
+
+    $check = $this->igcse_m->myclasses();
+    $trs = $this->igcse_m->get_teacher_byuserid();
+
+    $myclasses = [];
+    if ($check) {
+
+      foreach ($check as $ck) {
+        $myclasses[$ck->id] = $this->streams[$ck->id];
+      }
+    }
+
+    $teacher = $this->igcse_m->get_teachers();
+
+    //get other assigned classes
+    $mysubclasses = $this->igcse_m->get_class_with_teacher();
+
+    $clz = [];
+    if ($mysubclasses) {
+
+      foreach ($mysubclasses as $myclz) {
+        $clz[$myclz->class] = $this->streams[$myclz->class];
+      }
+    }
+    // echo "<pre>";
+    // print_r($clz);
+    // echo "<pre>";
+    // die;
+
+    $data['myclasses'] = $myclasses + $clz;
+
+    
+    
     $this->template->title('Marks')->build('trs/record', $data);
   }
 
@@ -125,11 +160,12 @@ class Trs extends Trs_Controller
       $data['thread'] = $thread;
       $data['exam'] = $exam;
       $data['subject'] = $subject;
+      //Select Subject sub units
+      $subunits = $this->igcse_m->sub_units($subject);
 
 
 
-
-      $data['outof'] = $this->igcse_m->fetch_outof($exam);
+      $data['outof'] = $this->igcse_m->fetch_outof($thread,$exam, $subject);
 
       // Retrieve students
       $students = $this->igcse_m->get_students($class);
@@ -140,6 +176,9 @@ class Trs extends Trs_Controller
         $student_ids[] = $student->id;
       }
 
+      // $data['tid'] = $thread;
+      // $data[]
+      $data['subunits'] = $subunits;
       $data['marks'] = $this->igcse_m->get_results($student_ids, $subject, $exam);
     }
 
@@ -152,9 +191,11 @@ class Trs extends Trs_Controller
 
   public function submit_marks()
   {
-
+    
 
     if ($this->input->post()) {
+      $post = (object) $this->input->post();
+
       $class = $this->input->post('class');
       $thread = $this->input->post('thread');
       $exam = $this->input->post('exam');
@@ -211,7 +252,50 @@ class Trs extends Trs_Controller
         }
       }
 
+      //Record marks for sub units
+      $post = (object) $this->input->post();
+      if (isset($post->sub)) {
+          $subunitsmks = $post->sub;
+
+          foreach ($subunitsmks as $key => $mark) {
+            $stu = explode('_',$key)[1];
+            $subunit = explode('_',$key)[0];
+
+            $sub_data = array(
+              'tid' => $this->input->post('thread'),
+              'subject' => $this->input->post('subject'),
+              'subunit' => $subunit,
+              'marks' => $mark,
+              'exam' => $this->input->post('exam'),
+              'student' => $stu  
+            );
+
+            //Check Subunit marks
+            $checkmks = $this->igcse_m->find_submarks($this->input->post('thread'),$this->input->post('subject'),$this->input->post('exam'),$stu,$subunit);
+
+            if ($checkmks) {
+              //Update Marks 
+              $dok = $this->igcse_m->update_table($checkmks->id,'igcse_subunitmarks',$sub_data);
+            } else {
+              //Record Sub Unit Score
+              $sok = $this->igcse_m->create_rec('igcse_subunitmarks',$sub_data);
+            }
+            
+
+            
+          }
+      
+      } 
+
+      // die;
+
       if ($update_success) {
+        if (isset($post->sub)) {
+          echo "Sub Unit Marks Found";
+        } else {
+          echo "No Sub Unit Marks Found";
+        }
+
         $this->session->set_flashdata('update_success', 'Update successful!');
       } else {
         $this->session->set_flashdata('insertion_success', 'Insertion successful!');
@@ -229,34 +313,65 @@ class Trs extends Trs_Controller
   }
   public function fetch_data($selectedClassId)
   {
+
+    $cls = $this->igcse_m->fetch_class($selectedClassId);
+    $clsid = $cls->class;
     $teacher = $this->user->id;
     $cls_tr = $this->igcse_m->class_teacher($selectedClassId);
     $trs = $this->igcse_m->get_teacher($teacher);
 
+    // print_r($selectedClassId);
+    // print_r($cls);
+    // die;
+
     if ($cls_tr->class_teacher == $teacher) {
-      $class = $this->igcse_m->fetch_subjects_by_classteacher($selectedClassId);
+      //  print_r('Was Class Teacher');
+      // die;
+      $class = $this->igcse_m->fetch_subjects_by_classteacher($clsid);
+
+      //  print_r($class);
+      // die;
+
+      $subs = $this->igcse_m->populate('subjects', 'id', 'name');
+      $data = array();
+      $subjectIds = array();
+      foreach ($class as $row) {
+
+        $subjectName = isset($subs[$row->subject_id]) ? $subs[$row->subject_id] : '';
+
+
+        if (!in_array($row->subject_id, $subjectIds)) {
+          $classSubject = array(
+            'subject' => $subjectName,
+            'value' => $row->subject_id
+          );
+          $data[] = $classSubject;
+          $subjectIds[] = $row->subject_id;
+        }
+      }
     } else {
+      // print_r('Just a Teacher');
+      // die;
       $class = $this->igcse_m->fetch_subjects_by_class($selectedClassId, $trs->id);
+
+      $subs = $this->igcse_m->populate('subjects', 'id', 'name');
+      $data = array();
+      foreach ($class as $row) {
+        // Get subject name from the $subs array using subject ID
+        $subjectName = isset($subs[$row->subject]) ? $subs[$row->subject] : '';
+
+        $classSubject = array(
+          'subject' => $subjectName,
+          'value' => $row->subject // Assign subject ID as the value
+        );
+        $data[] = $classSubject;
+      }
     }
 
-
-    $subs = $this->igcse_m->populate('subjects', 'id', 'name');
-    $data = array();
-    foreach ($class as $row) {
-      // Get subject name from the $subs array using subject ID
-      $subjectName = isset($subs[$row->subject]) ? $subs[$row->subject] : '';
-
-      $classSubject = array(
-        'subject' => $subjectName,
-        'value' => $row->subject // Assign subject ID as the value
-      );
-      $data[] = $classSubject;
-    }
 
     // Return the options as JSON
     echo json_encode($data);
   }
-
 
 
 

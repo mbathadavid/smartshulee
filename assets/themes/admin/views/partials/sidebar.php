@@ -113,6 +113,8 @@ if (
                          preg_match('/^(admin\/final_exams_grades)/i', $this->uri->uri_string()) ||
                          preg_match('/^(admin\/qa)/i', $this->uri->uri_string()) ||
                          preg_match('/^(admin\/mc)/i', $this->uri->uri_string()) ||
+                         preg_match('/^(admin\/boarding)/i', $this->uri->uri_string()) ||
+                         preg_match('/^(admin\/clubs)/i', $this->uri->uri_string()) ||
                        
                          preg_match('/^(admin\/assignments)/i', $this->uri->uri_string()))
                     echo 'class="active"';
@@ -391,8 +393,9 @@ echo $count;
 
 
                 <h5 class="center"> Other Activities </h5>
-
+                <a  <?php if (preg_match('/^(admin\/boarding\/reports)/i', $this->uri->uri_string())) echo 'class="active"'; ?> href="<?php echo base_url('admin/boarding/reports'); ?>"><span class="glyphicon glyphicon-file"></span> Generate Boarding Reports</a> 
                 
+                <a  <?php if (preg_match('/^(admin\/clubs\/reports)/i', $this->uri->uri_string())) echo 'class="active"'; ?> href="<?php echo base_url('admin/clubs/reports'); ?>"><span class="glyphicon glyphicon-file"></span> Generate Clubs Reports</a> 
 
                 <a  <?php if (preg_match('/^(admin\/final_exams_certificates)/i', $this->uri->uri_string())) echo 'class="active"'; ?> href="<?php echo base_url('admin/final_exams_certificates'); ?>"><span class="glyphicon glyphicon-file"></span> National Exams Certificates</a> 
 

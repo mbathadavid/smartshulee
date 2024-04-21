@@ -69,7 +69,7 @@
             <tbody>
                 <tr class="fbg">
                     <td colspan="2"></td>
-                    <td colspan="4" class="text-uppercase text-center">{{ summ.exam.name }}</td>
+                    <td colspan="5" class="text-uppercase text-center">{{ summ.exam.name }}</td>
                 </tr>
                 <tr class="fbg">
                     <td>#</td>
@@ -78,6 +78,7 @@
                     <td> <strong>ME</strong> - 3</td>
                     <td> <strong>AE</strong> - 2</td>
                     <td> <strong>BE</strong> - 1</td>
+                    <td> <strong>Comment</strong></td>
                 </tr>
                 <tr v-for="(s, index) in assess">
                     <td>{{ index+1 }}</td>
@@ -117,6 +118,9 @@
                                 <span class="pm-icon"> </span>
                             </label>
                         </span>
+                    </td>
+                    <td>
+                        <textarea :name="'tc_'+s.id" :id="'tc'+s.id" v-model='s.trs_comment' class="form-control" cols="30" rows="2"></textarea>
                     </td>
                 </tr>
             </tbody>
@@ -216,6 +220,8 @@ foreach ($students as $key => $name)
                     this.loading = true;
                     axios.post(BASE_URL + 'trs/cbc/get_summ', {class: this.class_, student: this.summ.student.id, term: this.summ.term.id, year: this.summ.year.id, exam: this.summ.exam.id})
                             .then(resp => {
+                                // console.log(resp.data.results);
+
                                 this.assess = resp.data.results;
                                 $vm.summ.gen_remarks = resp.data.gen_remarks;
                                 $vm.summ.tr_remarks = resp.data.tr_remarks;
@@ -236,6 +242,7 @@ foreach ($students as $key => $name)
                 this.loading = true;
                 axios.post(BASE_URL + 'trs/cbc/post_summ', {class: this.class_, student: this.summ.student.id, term: this.summ.term.id, year: this.summ.year.id, exam: this.summ.exam.id, assess: this.assess})
                         .then(resp => {
+                            console.log(resp);
                             //logged_in check
                             if (!resp.data.hasOwnProperty('message'))
                             {

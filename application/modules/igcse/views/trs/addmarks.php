@@ -4,6 +4,7 @@ $teachers = $this->igcse_m->list_teachers();
 $classes_with_teachers = $this->igcse_m->get_class_with_teacher();
 $subs = $this->igcse_m->populate('subjects', 'id', 'name');
 $examsid = $this->igcse_m->get_examstable($exam);
+
 ?>
 
 <div class="portlet mt-2">
@@ -64,7 +65,13 @@ $examsid = $this->igcse_m->get_examstable($exam);
 
           <th scope="col" style="width: 33.33%;">ADM NO</th>
           <th scope="col" style="width: 33.33%;">STUDENT</th>
-          <th scope="col" style="width: 33.33%;">MARKS</th>
+          <?php 
+            if (count($subunits) > 0) {
+              foreach ($subunits as $key => $sub) {
+          ?>
+          <th><?php echo $sub->title ?></th>
+          <?php } } ?>
+          <th scope="col" style="width: 33.33%;">TOTAL MARKS</th>
         </tr>
       </thead>
       <tbody>
@@ -79,6 +86,20 @@ $examsid = $this->igcse_m->get_examstable($exam);
 
               </td>
               <td><?php echo $student->first_name . "  " . $student->last_name ?></td>
+              <?php 
+                      if (count($subunits) > 0) {
+                        foreach ($subunits as $subunit) { 
+                          $checksubunitmarks = $this->igcse_m->find_submarks($thread,$subject,$exam,$student->id,$subunit->id);
+                          
+                          if ($checksubunitmarks) {
+                            $subunitscore = $checksubunitmarks->marks; 
+                          } else {
+                            $subunitscore = ''; 
+                          }
+                          
+                    ?>
+                    <td><input type="text" name="sub[<?php echo $subunit->id."_".$student->id ?>]" value="<?php echo $subunitscore ?>" class="form-control" required></td>
+                <?php } } ?>
               <td>
                 <input type="hidden" name="class" value="<?php echo $class; ?>">
                 <input type="hidden" name="thread" value="<?php echo $thread; ?>">

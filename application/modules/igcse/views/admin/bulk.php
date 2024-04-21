@@ -12,15 +12,9 @@ foreach ($this->classlist as $ssid => $s) {
     $sslist[$ssid] = $s['name'];
 }
 
-// $s1 = $rank ? '' : ' checked="checked" ';
-// $s2 = '';
-// $s3 = '';
-// if ($rank)
-// {
-//     $s1 = $rank == 1 ? ' checked="checked" ' : '';
-//     $s2 = $rank == 2 ? ' checked="checked" ' : '';
-//     $s3 = $rank == 3 ? ' checked="checked" ' : '';
-// }
+// echo "<pre>";
+// print_r($classsubjects);
+// echo "</pre>";
 ?>
 <div class="toolbar">
     <div class="row row-fluid">
@@ -104,6 +98,21 @@ if (isset($results)) {
 
         $prevresults = $this->igcse_m->prev_score($comparison,$result->student);
 
+        $subscount = 0;
+        $scoreoutof = 0;
+        $subsexclude = [9,10,11];
+        $subsinclude = [8,7,6,32];
+        $clsexclude = [4,5,6];
+        foreach ($subscores as $key => $score) {
+            if (in_array($result->class_group,$clsexclude) && !in_array($score->subject,$subsinclude)) {
+                continue;
+            }
+            $subscount++;
+            $scoreoutof += $score->total;
+        }
+
+
+
 ?>
         <div class="invoice">
             <!-- Transcript Start -->
@@ -147,10 +156,16 @@ if (isset($results)) {
             </div>
 
             <div class="row mb-2" id="positionsdiv">
-                <div class="col-md-2 col-lg-2" style="display: flex;">
+                <div class="col-md-4 col-lg-4" style="display: flex;">
                     <div style="width: 60%;">
                         <h6 class="text-center"><b>Mean</b></h6>
-                        <h6 class="text-center"><b><?php echo  $result->mean_grade ?>|<?php echo  $result->mean_mark ?>%</b></h6>
+                        <h6 class="text-center">
+                            <b>
+                            <?php 
+                                echo  $result->mean_grade ?>|<?php echo  $result->mean_mark; 
+                            ?>%
+                            </b>
+                        </h6>
                     </div>
                     <div style="width: 40%;">
                         <h5>
@@ -176,10 +191,24 @@ if (isset($results)) {
                         </h5>
                     </div>
                 </div>
-                <div class="col-md-3 col-lg-3" style="display: flex;">
+                <div class="col-md-4 col-lg-4" style="display: flex;">
                     <div style="width: 70%;">
                         <h6 class="text-center"><b>Total</b></h6>
-                        <h6 class="text-center"><b><?php echo  $result->total ?>/<?php echo  $result->outof ?></b></h6>
+                        <h6 class="text-center">
+                            <b>
+                                <?php
+                                echo $scoreoutof."/";
+                                $clsexclude = [4,5,6];
+                                if (in_array($result->class_group,$clsexclude)) {
+                                    echo $subscount * 50;
+                                } else {
+                                    echo $subscount * 100;
+                                }
+
+                                // echo  $result->total ?><?php  $scoreoutof 
+                                ?>
+                            </b>
+                        </h6>
                     </div>
                     <div style="width: 30%;">
                         <h5>
@@ -205,7 +234,7 @@ if (isset($results)) {
                         </h5>
                     </div>
                 </div>
-                <div class="col-md-2 col-lg-2" style="display: flex;">
+                <div class="col-md-4 col-lg-4" style="display: flex;">
                     <div style="width: 70%;">
                         <h6 class="text-center"><b>Total Points</b></h6>
                         <h6 class="text-center"><b><?php echo  $result->points ?>/<?php echo  $result->points_outof ?></b></h6>
@@ -234,7 +263,7 @@ if (isset($results)) {
                         </h5>
                     </div>
                 </div>
-                <div class="col-md-2 col-lg-2" style="display: flex;">
+                <!-- <div class="col-md-2 col-lg-2" style="display: flex;">
                     <div style="width: 70%;">
                         <h6 class="text-center"><b>OVR Pos</b></h6>
                         <h6 class="text-center"><b><?php echo $result->ovr_pos ?>/<?php echo count($results) ?></b></h6>
@@ -262,8 +291,8 @@ if (isset($results)) {
                             ?>
                         </h5>
                     </div>
-                </div>
-                <div class="col-md-3 col-lg-3" style="display: flex;">
+                </div> -->
+                <!-- <div class="col-md-3 col-lg-3" style="display: flex;">
                     <div style="width: 70%;">
                         <h6 class="text-center"><b>Stream Pos</b></h6>
                         <h6 class="text-center"><b><?php echo $result->str_pos  ?>/<?php echo $stroutof ?></b></h6>
@@ -291,7 +320,7 @@ if (isset($results)) {
                             ?>
                         </h5>
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <div class="row" style="margin-top: 10px;">
@@ -302,17 +331,25 @@ if (isset($results)) {
                             <th>MARKS (%)</th>
                             <th>DEV.</th>
                             <th>GRADE</th>
-                            <th>CLASS RANK</th>
-                            <th>STREAM RANK</th>
+                            <!-- <th>CLASS RANK</th> -->
+                            <!-- <th>STREAM RANK</th> -->
                             <th>COMMENT</th>
                             <th>TEACHER</th>
                         </thead>
                         <tbody>
                             <?php 
+                                $subsexclude = [9,10,11];
+                                $subsinclude = [8,7,6,32];
+                                $clsexclude = [4,5,6];
                                 foreach ($subscores as $key => $score) {
+                                    if (in_array($result->class_group,$clsexclude) && !in_array($score->subject,$subsinclude)) {
+                                        continue;
+                                    }
+                                    $subscount++;
+                                    $scoreoutof += $score->total;
                             ?>
                                 <tr>
-                                    <td><?php echo $subjects[$score->subject] ?></td>
+                                    <td><?php echo $subjects[$score->subject].' - ('.$score->subject.')' ?></td>
                                     <td><?php echo $score->total ?></td>
                                     <td>
                                         <?php
@@ -338,8 +375,8 @@ if (isset($results)) {
                                         ?>
                                     </td>
                                     <td><?php echo $score->grade ?></td>
-                                    <td><?php echo $score->ovr_rank ?></td>
-                                    <td><?php echo $score->stream_rank ?></td>
+                                    <!-- <td><?php echo $score->ovr_rank ?></td> -->
+                                    <!-- <td><?php echo $score->stream_rank ?></td> -->
                                     <td><?php echo $score->comment ?></td>
                                     <td>
                                         <?php 
@@ -462,7 +499,7 @@ if (isset($results)) {
 
         var options = {
           series: [{
-          name: '<?php echo $this->classes[$result->class_group] ?>',
+          name: "<?php echo $this->classes[$result->class_group] ?>",
           type: 'column',
           data: [
             <?php foreach ($submeans as $sub => $details) { 
@@ -472,8 +509,8 @@ if (isset($results)) {
             <?php } ?>
             ]
         }, {
-          name: '<?php echo $stu->first_name ?>',
-          type: 'line',
+          name: "<?php echo $stu->first_name ?>",
+          type: "line",
           data: [
             <?php foreach ($submeans as $sub => $details) { 
                 echo $details['studentscore'].','    
@@ -485,7 +522,7 @@ if (isset($results)) {
           chart: {
             height: 200,
             width: '80%',
-            type: 'line',
+            type: "line",
             zoom : {
                 enabled: false
             }
@@ -494,7 +531,7 @@ if (isset($results)) {
           width: [0, 2]
         },
         title: {
-          text: '<?php echo $stu->first_name ?> vs <?php echo $this->classes[$result->class_group] ?> Perfomance subjectwise'
+          text: "<?php echo $stu->first_name ?> vs <?php echo $this->classes[$result->class_group] ?> Perfomance subjectwise"
         },
         dataLabels: {
           enabled: true,
@@ -513,14 +550,14 @@ if (isset($results)) {
         },
         yaxis: [{
           title: {
-            text: '<?php echo $this->classes[$result->class_group] ?> Means',
+            text: "<?php echo $this->classes[$result->class_group] ?> Means",
           },
          
         }, 
             {
             opposite: true,
             title: {
-                text: '<?php echo $stu->first_name ?> Scores'
+                text: "<?php echo $stu->first_name ?> Scores"
             }
             }
         ]
@@ -875,22 +912,22 @@ $(document).ready(function(){
             clear: both;
         }
 
-        #positionsdiv .col-md-3,
-        #positionsdiv .col-lg-3,
-        #positionsdiv .col-md-2,
-        #positionsdiv .col-lg-2 {
+        /* #positionsdiv .col-md-3,
+        #positionsdiv .col-lg-3, */
+        #positionsdiv .col-md-4,
+        #positionsdiv .col-lg-4 {
             float: left;
         }
 
-        #positionsdiv .col-md-3,
-        #positionsdiv .col-lg-3 {
-            width: 25%;
+        #positionsdiv .col-md-4,
+        #positionsdiv .col-lg-4 {
+            width: 33.333%;
         }
 
-        #positionsdiv .col-md-2,
+        /* #positionsdiv .col-md-2,
         #positionsdiv .col-lg-2 {
             width: 16.66667%;
-        }
+        } */
 
         #footerdiv::after {
             content: "";

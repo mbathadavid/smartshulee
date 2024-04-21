@@ -12,13 +12,14 @@ foreach ($this->classlist as $cid => $cl)
 
 
 <div class="row hidden-print">
-        <div class="col-md-4 st-t">
+        <div class="col-md-2 st-t">
         </div>
-        <div class="col-md-4 st-t p-10">
+        <div class="col-md-8 st-t p-10">
             <a href="<?php echo base_url('admin/cbc/summative'); ?>" class="btn btn-primary">Summative Report</a>
+            <a href="<?php echo base_url('admin/cbc/summative_opt2'); ?>" class="btn btn-success">Summative Report Option 2</a>
             <a href="<?php echo base_url('admin/cbc/assessment'); ?>" class="btn btn-info">Formative Report</a>
         </div>
-        <div class="col-md-4 st-t">
+        <div class="col-md-2 st-t">
 
         </div>
     </div>

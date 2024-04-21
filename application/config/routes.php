@@ -282,3 +282,15 @@ $route['mpesa/(:num)'] = 'mpesa/index/$1';
 
 //Routes For igcse
 $route['igcse/(:num)'] = 'igcse/index/$1';
+
+//Routes for Boarding
+$route['boarding/(:num)'] = 'igcse/index/$1';
+
+//Routes For boarding
+$route['boarding/(:num)'] = 'boarding/index/$1';
+
+//Routes For clubs
+$route['clubs/(:num)'] = 'clubs/index/$1';
+
+//Routes For clubs
+$route['clubs/(:num)'] = 'clubs/index/$1';

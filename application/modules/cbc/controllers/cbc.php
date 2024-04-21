@@ -44,7 +44,7 @@ class Cbc extends Trs_Controller
             $grp = isset($groups[$row->class]) ? $groups[$row->class] : '';
         }
         $row->name = $grp . ' ' . $st;
-
+        
         $data['students'] = $this->cbc_m->get_students($class);
         $data['class'] = $row;
 
@@ -161,16 +161,19 @@ class Cbc extends Trs_Controller
         $student = ['adm' => $rw->admission_number, 'age' => $age];
 
         $fn = [];
+        $cm = [];
         if ($summ)
         {
             $res = $this->cbc_m->get_summ_ratings($summ->id, $post->exam);
             foreach ($res as $r)
             {
                 $fn[$r->subject] = $r->rating;
+                $cm[$r->subject] = $r->trs_comment;
             }
             foreach ($subjects as $s)
             {
                 $s->rate = isset($fn[$s->subject]) ? $fn[$s->subject] : '';
+                $s->trs_comment = isset($cm[$s->subject]) ? $cm[$s->subject] : '';
             }
 
             echo json_encode(['results' => $subjects, 'student' => $student, 'opening' => $summ->opening, 'closing' => $summ->closing, 'gen_remarks' => str_replace("\n", '', $summ->gen_remarks), 'tr_remarks' => str_replace("\n", '', $summ->tr_remarks)]);
@@ -185,6 +188,11 @@ class Cbc extends Trs_Controller
     {
         $json = file_get_contents('php://input');
         $post = json_decode($json);
+
+        // echo "<pre>";
+        //     print_r($post);
+        // echo "</pre>";
+        // die;
 
         $summ = $this->cbc_m->get_summ($post->class, $post->student, $post->term, $post->year);
 
@@ -227,6 +235,7 @@ class Cbc extends Trs_Controller
                     'subject' => $ss->subject,
                     'exam' => $post->exam,
                     'rating' => $ss->rate,
+                    'trs_comment' => $ss->trs_comment,
                     'created_by' => $this->user->id,
                     'created_on' => time()
                 ];

@@ -20,10 +20,27 @@ class Igcse_m extends MY_Model{
         return $this->db->insert_id();
     }
 
+    //Get Subunits
+    function sub_units($sid) {
+        return $this->db->where(array('parent' => $sid))->get('sub_cats')->result();
+    }
+
     //Create a Record
     function create_rec($table,$data) {
         $this->db->insert($table, $data);
         return $this->db->insert_id();
+    }
+
+    //Function to find subunit marks
+    function find_submarks($tid,$subject,$ex,$student,$subunit) {
+        return $this->db
+                    ->where(array('tid' => $tid))
+                    ->where(array('subject' => $subject))
+                    ->where(array('exam' => $ex))
+                    ->where(array('student' => $student))
+                    ->where(array('subunit' => $subunit))
+                    ->get('igcse_subunitmarks')
+                    ->row();
     }
 
     function find($id)
@@ -127,6 +144,25 @@ class Igcse_m extends MY_Model{
                 'short_name' => $subject->short_name
             ];
         }
+
+        return $subs;
+     }
+
+     function get_subjects_op2($class,$term) {
+        $list = $this->db
+                    // ->where('term',$term)
+                    ->where('class_id', $class)
+                    ->get('subjects_classes')
+                    ->result();
+
+        $subs = [];
+
+        foreach ($list as $key => $l) {
+            $subject = $this->get_subject($l->subject_id);
+
+            $subs[] = $subject->id;
+        }
+
 
         return $subs;
      }
@@ -255,9 +291,12 @@ class Igcse_m extends MY_Model{
      }
 
      function student_scores($tid,$stu) {
+        // print_r($subids);
+        // die;
         return $this->db
                     ->where(array('tid' => $tid))
                     ->where(array('student' => $stu))
+                    // ->where_in(array('subject' => $subids))
                     ->get('igcse_computed_marks')
                     ->result();
      }
@@ -281,6 +320,11 @@ class Igcse_m extends MY_Model{
                 ->where(array('student' => $stu))
                 ->get('igcse_computed_marks')
                 ->row();
+     }
+
+     //Get class group subjects
+     function class_group_subjects() {
+
      }
 
      //Get Exams
@@ -371,6 +415,28 @@ class Igcse_m extends MY_Model{
                 'name' => $subject->name,
                 'short_name' => $subject->short_name
             ];
+        }
+
+        return $subs;
+     }
+
+     //Get Subjects by Class
+     function get_class_subjects_op2($group = false,$term = false) {
+        $streams = $this->get_streams($group);
+        $subjects = $this->populate('subjects','id','name');
+
+        $list = $this->db
+                    //  ->where('term',$term)
+                     ->where_in('class_id', $streams)
+                     ->get('subjects_classes')
+                     ->result();
+
+        $subs = [];
+
+        foreach ($list as $key => $l) {
+            $subject = $this->get_subject($l->subject_id);
+
+            $subs[] = $subject->id;
         }
 
         return $subs;
@@ -482,7 +548,12 @@ class Igcse_m extends MY_Model{
 
      //Get final results by students 
      function results($tid,$students = array()) {
-        return $this->db->where(array('tid' => $tid))->where_in('student',$students)->order_by('total','DESC')->get('igcse_final_results')->result();
+        return $this->db
+                    ->where(array('tid' => $tid))
+                    ->where_in('student',$students)
+                    ->order_by('total','DESC')
+                    ->get('igcse_final_results')
+                    ->result();
      }
 
      //Function to get marks list
@@ -569,7 +640,7 @@ function populate($table,$option_val,$option_text)
 
     function get_teachers()
     {
-        //$this->db->select('teachers.id as id ,' . $this->dxa('first_name') . ', ' . $this->dxa('last_name'), FALSE);
+        
         $this->db->select('teachers.id as id ,' . $this->dx('teachers.first_name') . ' as first_name, ' . $this->dx('teachers.last_name') . ' as last_name', FALSE);
         return $this->db->where($this->dx('teachers.status') . ' != 0', NULL, FALSE)
             ->where('users.id', $this->user->id) // Select where user_id is equal to $this->user->id
@@ -579,12 +650,21 @@ function populate($table,$option_val,$option_text)
             ->row(); // Return only one row
     }
 
+    
     function get_teacher($id)
     {
         $this->select_all_key('teachers');
         $this->db->where($this->dx('user_id') . " ='" . $id . "'", NULL, FALSE);
         $this->db->where($this->dx('status') . " ='" . 1 . "'", NULL, FALSE);
         return $this->db->get('teachers')->row();
+    }
+
+    function get_teacher_byuserid()
+    {
+        $this->select_all_key('teachers');
+        // $this->db->where($this->dx('user_id') . " ='" . $id . "'", NULL, FALSE);
+        // $this->db->where($this->dx('status') . " ='" . 1 . "'", NULL, FALSE);
+        return $this->db->get('teachers')->result();
     }
 
     function is_classteacher($class){
@@ -614,16 +694,24 @@ function populate($table,$option_val,$option_text)
 
     function fetch_subjects_by_classteacher($selectedClassId)
     {
-        $this->db->where('class', $selectedClassId);
-        $query = $this->db->get('subjects_assign');
+        $this->db->where('class_id', $selectedClassId);
+        $query = $this->db->get('subjects_classes');
         return $query->result();
+    }
+    function fetch_class($selectedClassId)
+    {
+        $this->db->where('id', $selectedClassId);
+        $query = $this->db->get('classes');
+        return $query->row();
     }
 
 
-    function fetch_outof($exam)
+    function fetch_outof($tid,$exam,$sub)
     {
 
-        $query = $this->db->where('exams_id', $exam)
+        $query = $this->db->where('tid', $tid)
+            ->where('exams_id', $exam)
+            ->where('subject', $sub)
             ->get('igcse_marks_list');
         return $query->row();
     }
@@ -668,6 +756,8 @@ function populate($table,$option_val,$option_text)
         
         $teacher = $this->get_teachers();
 
+         // $teacher = $this->profile;
+
         if ($teacher) {
            
             return $this->db->select('class')
@@ -680,6 +770,21 @@ function populate($table,$option_val,$option_text)
             return array();
         }
     }
+
+
+    function myclasses(){
+      
+        $this->db->where('class_teacher', $this->profile->user_id);
+        $query = $this->db->get('classes');
+        return $query->result(); 
+    }
+
+
+    function getsubclasses($cls){
+     $this->db->where('class_id', $cls)->get('subjects_classes')->result();
+
+    }
+
 
     function class_teacher($id)
     {

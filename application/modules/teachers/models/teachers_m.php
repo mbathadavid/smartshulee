@@ -26,6 +26,15 @@ class Teachers_m extends MY_Model
         return $this->db->order_by('id', 'desc')->group_by('status')->get('teachers')->result();
     }
 
+    function list($status = 1) {
+        $this->select_all_key('teachers');
+        return $this->db
+                    ->where($this->dx('status'). '= "'.$status.'"', null, false )
+                    ->order_by('id', 'desc')
+                    ->get('teachers')
+                    ->result();
+    }
+
     function filterbystatus($status)
     {
         $this->select_all_key('teachers');
